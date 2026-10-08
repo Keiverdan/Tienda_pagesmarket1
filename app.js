@@ -31,13 +31,9 @@ function priceBs(p) { return p.precioUSD * CONFIG.tasaBCV; }
 
 /* ============================================================
    CARGA DE DATOS (productos.json)
-   - Funciona abriendo index.html con doble clic (file://).
-   - Si el navegador bloquea XHR local por seguridad, se usa
-     un fallback embebido.
    ============================================================ */
 function cargarDatos() {
   return new Promise((resolve, reject) => {
-    // Detectar la ruta base donde está app.js
     const scripts = document.getElementsByTagName('script');
     let basePath = '';
     for (let s of scripts) {
@@ -171,8 +167,18 @@ function updateCart(bump = false) {
    ============================================================ */
 function renderCategorias() {
   const nav = $('catNav');
-  // Deja el botón "Todos" y agrega el resto
-  nav.querySelectorAll('.cat:not([data-cat="all"])').forEach(b => b.remove());
+  // Limpiar categorías antiguas (excepto el botón "Todos" y el dropdown)
+  nav.querySelectorAll('.cat:not([data-cat="all"]):not(.dropdown .cat)').forEach(b => b.remove());
+  
+  // Actualizar el menú desplegable si existe
+  const dropdownContent = $('dropdownContent');
+  if (dropdownContent) {
+    dropdownContent.innerHTML = CATEGORIAS.map(c => 
+      `<a href="#" data-cat="${c.id}"><i class="fa-solid ${c.icono}" style="margin-right:8px; color:var(--green-primary);"></i>${c.nombre}</a>`
+    ).join('');
+  }
+
+  // Insertar las categorías en la barra de navegación (excepto "Todos")
   CATEGORIAS.forEach(c => {
     const b = document.createElement('button');
     b.className = 'cat';
@@ -181,13 +187,14 @@ function renderCategorias() {
     if (state.category === c.id) b.classList.add('active');
     nav.appendChild(b);
   });
+  
   // Marca activo "Todos" si corresponde
-  nav.querySelector('[data-cat="all"]').classList.toggle('active', state.category === 'all');
+  const allBtn = nav.querySelector('[data-cat="all"]');
+  if(allBtn) allBtn.classList.toggle('active', state.category === 'all');
 }
 
 function render(animate = true, justId = null) {
   const grid = $('grid');
-  // Solo anima la entrada de tarjetas al filtrar/cargar; no al cambiar cantidades
   grid.classList.toggle('static', !animate);
   const list = PRODUCTS.filter(p => {
     const c = state.category === 'all' || p.categoria === state.category;
@@ -239,7 +246,7 @@ function changeQty(id, delta) {
 }
 
 /* ============================================================
-   VACIAR PEDIDO (nuevo botón)
+   VACIAR PEDIDO
    ============================================================ */
 function vaciarPedido() {
   if (totals().items === 0) { toast('El pedido ya está vacío'); return; }
@@ -260,7 +267,6 @@ $('grid').addEventListener('click', e => {
   const btn = e.target.closest('[data-act]');
   if (!btn || btn.tagName === 'INPUT') return;
   const id = +btn.closest('.card').dataset.id;
-  // Efecto ripple en el botón "Agregar"
   if (btn.classList.contains('add')) {
     const r = btn.getBoundingClientRect();
     const s = Math.max(r.width, r.height);
@@ -284,12 +290,25 @@ $('grid').addEventListener('change', e => {
   save();
 });
 
-$('catNav').addEventListener('click', e => {
-  const b = e.target.closest('.cat');
-  if (!b) return;
-  state.category = b.dataset.cat;
-  document.querySelectorAll('.cat').forEach(x => x.classList.toggle('active', x === b));
-  render();
+// Manejo del clic en las categorías (incluyendo el menú desplegable)
+document.addEventListener('click', e => {
+  const catBtn = e.target.closest('[data-cat]');
+  if (catBtn) {
+    e.preventDefault();
+    const cat = catBtn.dataset.cat;
+    state.category = cat;
+    
+    // Actualizar clases activas en la barra de navegación
+    document.querySelectorAll('.cat').forEach(x => x.classList.toggle('active', x.dataset.cat === cat));
+    
+    // Si el clic fue en el dropdown, actualizar también el botón "Todos" o el botón principal
+    if (!catBtn.classList.contains('cat')) {
+        document.querySelectorAll('.cat').forEach(x => x.classList.remove('active'));
+        // Opcional: marcar el botón "Categorías" como activo si quieres
+    }
+
+    render();
+  }
 });
 
 $('searchInput').addEventListener('input', e => {
@@ -426,46 +445,30 @@ $('waBtn').addEventListener('click', () => {
 
   const msg = `*NUEVO PEDIDO DE COMPRA*\n*${CONFIG.tienda}*\n*Cliente:* ${state.customerName}\n\n*PRODUCTOS SOLICITADOS:*\n${lines}\n*Nro. Referencia Pago:* ${state.refNumber}\n\n¡Gracias por su compra!`;
 
-  // 1) Abrir WhatsApp con el mensaje
   window.open('https://wa.me/' + CONFIG.whatsapp + '?text=' + encodeURIComponent(msg), '_blank');
 
-  // 2) Al volver a la pestaña, limpiar pedido y agradecer
   const limpiarPedido = () => {
-    // Cerrar modal de factura
     $('invModal').classList.remove('show');
-
-    // Vaciar cantidades y referencia
     state.quantities = {};
     state.refNumber = '';
     $('refInput').value = '';
-
-    // Refrescar interfaz
     render();
     updateCart();
     save();
-
-    // Mensaje de agradecimiento
     toast('¡Gracias por su compra! 🛒', 5000);
-
-    // Quitar el listener para que no se ejecute de nuevo
     window.removeEventListener('focus', limpiarPedido);
   };
 
-  // Se dispara cuando el usuario vuelve a la página
-  // (el navegador recupera el foco al volver desde WhatsApp)
   window.addEventListener('focus', limpiarPedido, { once: true });
 
-  // Fallback: si el navegador no dispara "focus" (raro), limpiamos tras 1 seg
   setTimeout(() => {
     if (state.quantities && Object.keys(state.quantities).length > 0 && !totals().items) return;
-    // Solo limpia si aún no se limpió
     if (Object.values(state.quantities).some(v => v > 0)) limpiarPedido();
   }, 1200);
 });
 
 /* ============================================================
-   DESCARGAR index.html (sin fetch)
-   Usa el snapshot del DOM actual.
+   DESCARGAR index.html
    ============================================================ */
 $('dlBtn').addEventListener('click', () => {
   const html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
@@ -493,7 +496,6 @@ async function init() {
       return;
    }
 
-  // Aplicar datos de config a la UI
   $('topPhone').textContent = CONFIG.whatsappVisible;
   $('footPhone').textContent = CONFIG.whatsappVisible;
   $('footBrand').textContent = CONFIG.tienda;
@@ -506,7 +508,6 @@ async function init() {
   render();
   updateCart();
 
-  // Animaciones al hacer scroll (ligero, se desconecta tras mostrar)
   const revealEls = document.querySelectorAll('.reveal');
   if ('IntersectionObserver' in window) {
     const io = new IntersectionObserver(entries => {
