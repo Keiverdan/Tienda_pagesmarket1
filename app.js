@@ -152,15 +152,21 @@ function updateCart(bump = false) {
    ============================================================ */
 function renderCategorias() {
   const dropdownContent = $('dropdownContent');
-  if (!dropdownContent) return;
+  if (!dropdownContent) {
+    console.warn('⚠️ #dropdownContent no encontrado');
+    return;
+  }
 
   // Si la categoría guardada ya no existe, volver a "Todos"
   if (state.category !== 'all' && !CAT_LABEL[state.category]) state.category = 'all';
 
-  // Las categorías viven SOLO dentro del menú desplegable
-  dropdownContent.innerHTML = CATEGORIAS.map(c =>
+  // Renderizar TODAS las categorías (incluyendo "Todos" como opción)
+  let html = `<a href="#" role="menuitem" data-cat="all"><i class="fa-solid fa-border-all"></i><span>Todos</span></a>`;
+  html += CATEGORIAS.map(c =>
     `<a href="#" role="menuitem" data-cat="${c.id}"><i class="fa-solid ${c.icono}"></i><span>${c.nombre}</span></a>`
   ).join('');
+  
+  dropdownContent.innerHTML = html;
 
   syncCategoriaUI();
 }
