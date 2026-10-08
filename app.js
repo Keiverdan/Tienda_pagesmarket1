@@ -151,29 +151,34 @@ function updateCart(bump = false) {
    RENDER CATÁLOGO + CATEGORÍAS
    ============================================================ */
 function renderCategorias() {
-  const nav = $('catNav');
-  if (!nav) return;
-  
-  nav.querySelectorAll('.cat:not([data-cat="all"]):not(.dropdown .cat)').forEach(b => b.remove());
-  
   const dropdownContent = $('dropdownContent');
-  if (dropdownContent) {
-    dropdownContent.innerHTML = CATEGORIAS.map(c => 
-      `<a href="#" data-cat="${c.id}"><i class="fa-solid ${c.icono}" style="margin-right:8px; color:var(--green-accent);"></i>${c.nombre}</a>`
-    ).join('');
-  }
+  if (!dropdownContent) return;
 
-  CATEGORIAS.forEach(c => {
-    const b = document.createElement('button');
-    b.className = 'cat';
-    b.dataset.cat = c.id;
-    b.innerHTML = `<i class="fa-solid ${c.icono}"></i>${c.nombre}`;
-    if (state.category === c.id) b.classList.add('active');
-    nav.appendChild(b);
+  // Si la categoría guardada ya no existe, volver a "Todos"
+  if (state.category !== 'all' && !CAT_LABEL[state.category]) state.category = 'all';
+
+  // Las categorías viven SOLO dentro del menú desplegable
+  dropdownContent.innerHTML = CATEGORIAS.map(c =>
+    `<a href="#" role="menuitem" data-cat="${c.id}"><i class="fa-solid ${c.icono}"></i><span>${c.nombre}</span></a>`
+  ).join('');
+
+  syncCategoriaUI();
+}
+
+/* Marca la categoría activa en la barra, el menú y el botón */
+function syncCategoriaUI() {
+  const allBtn = document.querySelector('.cat[data-cat="all"]');
+  if (allBtn) allBtn.classList.toggle('active', state.category === 'all');
+
+  document.querySelectorAll('#dropdownContent [data-cat]').forEach(a => {
+    a.classList.toggle('active', a.dataset.cat === state.category);
   });
-  
-  const allBtn = nav.querySelector('[data-cat="all"]');
-  if(allBtn) allBtn.classList.toggle('active', state.category === 'all');
+
+  const hasCat = state.category !== 'all';
+  const btn = $('catDropdownBtn');
+  const lbl = $('catDropdownLbl');
+  if (btn) btn.classList.toggle('active', hasCat);
+  if (lbl) lbl.textContent = hasCat ? (CAT_LABEL[state.category] || 'Categorías') : 'Categorías';
 }
 
 function render(animate = true, justId = null) {
@@ -321,60 +326,78 @@ if ($('grid')) {
 }
 
 /* ============================================================
-   FILTRO POR CATEGORÍA (CORREGIDO)
-   - Se asigna el evento SOLO a los elementos con [data-cat]
-   - El botón "Categorías" NO tiene data-cat, por lo que no dispara filtro
+   MENÚ DE CATEGORÍAS (PC: desplegable · Móvil: panel inferior)
+   - El menú está fuera del <header> (no lo recorta ni lo tapa nada)
+   - Se abre/cierra con clic (también funciona en pantallas táctiles)
    ============================================================ */
-function activarFiltrosCategoria() {
-  document.querySelectorAll('[data-cat]').forEach(el => {
-    el.addEventListener('click', e => {
-      e.preventDefault();
-      e.stopPropagation();
-      const cat = el.dataset.cat;
-      state.category = cat;
-      
-      // Actualizar clase activa en los botones de la barra
-      document.querySelectorAll('.cat').forEach(x => {
-        x.classList.toggle('active', x.dataset.cat === cat);
-      });
-      
-      // Cerrar dropdown en móvil
-      const dropdown = $('dropdownContent');
-      const overlay = $('dropdownOverlay');
-      if (dropdown) dropdown.classList.remove('show');
-      if (overlay) overlay.classList.remove('show');
-      
-      render();
-    });
+const catBtn     = $('catDropdownBtn');
+const catMenu    = $('dropdownContent');
+const catOverlay = $('dropdownOverlay');
+const isMobileView = () => window.matchMedia('(max-width: 860px)').matches;
+
+function menuAbierto() { return !!catMenu && catMenu.classList.contains('show'); }
+
+function posicionarMenu() {
+  if (!catBtn || !catMenu) return;
+  if (isMobileView()) {          // en móvil lo ubica el CSS (panel inferior)
+    catMenu.style.top = '';
+    catMenu.style.left = '';
+    return;
+  }
+  const r = catBtn.getBoundingClientRect();
+  const maxLeft = window.innerWidth - catMenu.offsetWidth - 12;
+  catMenu.style.top  = (r.bottom + 8) + 'px';
+  catMenu.style.left = Math.max(12, Math.min(r.left, maxLeft)) + 'px';
+}
+
+function abrirMenuCategorias() {
+  if (!catMenu) return;
+  catMenu.classList.add('show');
+  if (catOverlay) catOverlay.classList.add('show');
+  if (catBtn) catBtn.setAttribute('aria-expanded', 'true');
+  posicionarMenu();
+}
+
+function cerrarMenuCategorias() {
+  if (catMenu) catMenu.classList.remove('show');
+  if (catOverlay) catOverlay.classList.remove('show');
+  if (catBtn) catBtn.setAttribute('aria-expanded', 'false');
+}
+
+if (catBtn) {
+  catBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    menuAbierto() ? cerrarMenuCategorias() : abrirMenuCategorias();
   });
 }
+if (catOverlay) catOverlay.addEventListener('click', cerrarMenuCategorias);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') cerrarMenuCategorias(); });
+window.addEventListener('resize', () => { if (menuAbierto()) posicionarMenu(); });
+window.addEventListener('scroll', () => { if (menuAbierto()) posicionarMenu(); }, { passive: true });
 
 /* ============================================================
-   MENÚ DESPLEGABLE EN MÓVIL
+   FILTRO POR CATEGORÍA
+   Un solo listener delegado: funciona para "Todos" y para cada
+   categoría del menú, aunque se vuelvan a renderizar.
    ============================================================ */
-if ($('catDropdownBtn')) {
-  $('catDropdownBtn').addEventListener('click', (e) => {
-    e.stopPropagation();
-    const dropdown = $('dropdownContent');
-    const overlay = $('dropdownOverlay');
-    
-    if (dropdown && overlay) {
-      if (dropdown.classList.contains('show')) {
-        dropdown.classList.remove('show');
-        overlay.classList.remove('show');
-      } else {
-        dropdown.classList.add('show');
-        overlay.classList.add('show');
-      }
-    }
-  });
+function setCategory(cat) {
+  state.category = cat;
+  syncCategoriaUI();
+  cerrarMenuCategorias();
+  save();
+  render();
+
+  // En móvil, llevar al catálogo para ver el resultado del filtro
+  const cat_ = $('catalogo');
+  if (cat_ && isMobileView()) cat_.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
-if ($('dropdownOverlay')) {
-  $('dropdownOverlay').addEventListener('click', () => {
-    const dropdown = $('dropdownContent');
-    if (dropdown) dropdown.classList.remove('show');
-    $('dropdownOverlay').classList.remove('show');
+function activarFiltrosCategoria() {
+  document.addEventListener('click', e => {
+    const el = e.target.closest('[data-cat]');
+    if (!el) return;
+    e.preventDefault();
+    setCategory(el.dataset.cat);
   });
 }
 
