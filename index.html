@@ -56,13 +56,20 @@
         
         <div class="dropdown" id="catDropdown">
           <button class="cat" id="catDropdownBtn"><i class="fa-solid fa-bars"></i>Categorías <i class="fa-solid fa-caret-down" style="font-size:10px; margin-left:4px;"></i></button>
-          <div class="dropdown-menu" id="dropdownContent">
-            <!-- Se llenará dinámicamente con JS -->
-          </div>
+          <!-- El menú desplegable se movió FUERA del header (ver abajo) -->
         </div>
       </div>
     </div>
   </header>
+
+  <!-- ============================================================
+       MENÚ DESPLEGABLE DE CATEGORÍAS (hijo directo de <body>)
+       Movido aquí para que ningún contenedor con sticky, backdrop-filter
+       u overflow lo recorte ni limite su z-index.
+       ============================================================ -->
+  <div class="dropdown-menu" id="dropdownContent">
+    <!-- Se llenará dinámicamente con JS -->
+  </div>
 
   <!-- Overlay para el menú desplegable en móvil (IMPRESCINDIBLE) -->
   <div class="dropdown-overlay" id="dropdownOverlay"></div>
