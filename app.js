@@ -36,32 +36,37 @@ function priceBs(p) { return p.precioUSD * CONFIG.tasaBCV; }
      un fallback embebido.
    ============================================================ */
 function cargarDatos() {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest();
-    xhr.open('GET', 'productos.json', true);
+    xhr.open('GET', 'productos.json?v=' + Data.now(), true);
     xhr.onreadystatechange = function () {
       if (xhr.readyState === 4) {
         if (xhr.status === 200 || xhr.status === 0) {
           try {
             const data = JSON.parse(xhr.responseText);
             aplicarDatos(data);
+            console.log('✅ La data está cargado. Tasa =', CONFIG.tasaBCV);
             resolve(true);
-            return;
-          } catch (e) { console.warn('JSON inválido, usando fallback'); }
-        }
-        // Fallback si falla (útil en file://)
-        aplicarDatos(FALLBACK_DATA);
-        resolve(false);
+          } catch (e) { 
+             console.error('archivo de datos inválido', e); 
+             reject(e);
+          }
+        } else {
+           console.error('❌ No se pudo leer los datos. Status:', xhr.status);
+           reject(new Error('No se pudo leer los datos'));
       }
-    };
-    xhr.onerror = () => { aplicarDatos(FALLBACK_DATA); resolve(false); };
+    }
+   };
+    xhr.onerror = () => { reject(new Error('Error de red'));
     xhr.send();
-  });
 }
 
 function aplicarDatos(data) {
   if (data.config) {
     CONFIG = Object.assign(CONFIG, data.config);
+     if (data.config.tasaBCV) {
+        CONFIG.tasaBCV = parseFloat(data.config.tasaBCV) || CONFIG.tasaBCV;
+        }
   }
   if (data.categorias) {
     CATEGORIAS = data.categorias;
@@ -71,42 +76,8 @@ function aplicarDatos(data) {
   if (data.productos) {
     PRODUCTS = data.productos;
   }
+   console.log('✅ Datos cargados. Tasa BCV =', CONFIG.tasaBCV);
 }
-
-/* ============================================================
-   FALLBACK embebido por si el navegador no deja leer el JSON
-   (ocurre al abrir index.html con file:// en Chrome/Edge).
-   Debe estar sincronizado con productos.json.
-   ============================================================ */
-const FALLBACK_DATA = {
-  config: {
-    tienda: "Inversiones Chupaalperro 668 C.A",
-    whatsapp: "584126887277",
-    whatsappVisible: "0412-688-7277",
-    tasaBCV: 0,   // se sobrescribe al cargar productos.json
-    banco: { codigo:"0102 - Banco de Venezuela", cedula:"V-12123123", telefono:"04126887277" }
-  },
-  categorias: [
-    { id:"viveres",   nombre:"Víveres",    icono:"fa-wheat-awn" },
-    { id:"lacteos",   nombre:"Lácteos",    icono:"fa-cheese" },
-    { id:"salsas",    nombre:"Salsas",     icono:"fa-bottle-droplet" },
-    { id:"chucherias",nombre:"Chucherías", icono:"fa-candy-cane" }
-  ],
-  productos: [
-    { id:1,  titulo:"Harina de Maíz",                 marca:"PAN",            peso:"1Kg",   categoria:"viveres",   precioUSD:1.03, imagen:"img/harina-pan.jpg" },
-    { id:2,  titulo:"Arroz Blanco Super Premium",      marca:"Mary",           peso:"1Kg",   categoria:"viveres",   precioUSD:0.97, imagen:"img/arroz-mary.jpg" },
-    { id:3,  titulo:"Aceite Vegetal Puro",             marca:"Vatel",          peso:"1L",    categoria:"viveres",   precioUSD:1.60, imagen:"img/aceite-vatel.jpg" },
-    { id:4,  titulo:"Pasta Plumas Rigate",             marca:"Primor",         peso:"1Kg",   categoria:"viveres",   precioUSD:1.09, imagen:"img/pasta-primor.jpg" },
-    { id:5,  titulo:"Azúcar Refinada Alta Pureza",     marca:"Montalbán",      peso:"1Kg",   categoria:"viveres",   precioUSD:0.92, imagen:"img/azucar-montalban.jpg" },
-    { id:6,  titulo:"Café Molido Gourmet",             marca:"Fama de América",peso:"500gr", categoria:"viveres",   precioUSD:1.37, imagen:"img/cafe-fama.jpg" },
-    { id:7,  titulo:"Leche Completa en Polvo",         marca:"La Campiña",     peso:"800gr", categoria:"lacteos",   precioUSD:2.40, imagen:"img/leche-campina.jpg" },
-    { id:8,  titulo:"Mantequilla con Sal",             marca:"Mavesa",         peso:"500gr", categoria:"lacteos",   precioUSD:1.26, imagen:"img/mantequilla-mavesa.jpg" },
-    { id:9,  titulo:"Atún en Lomo Desmenuzado",        marca:"Margarita",      peso:"170gr", categoria:"viveres",   precioUSD:0.74, imagen:"img/atun-margarita.jpg" },
-    { id:10, titulo:"Caraotas Negras Seleccionadas",   marca:"Mary",           peso:"500gr", categoria:"viveres",   precioUSD:0.86, imagen:"img/caraotas-mary.jpg" },
-    { id:11, titulo:"Salsa de Tomate Ketchup",         marca:"Pampero",        peso:"397gr", categoria:"salsas",    precioUSD:0.66, imagen:"img/ketchup-pampero.jpg" },
-    { id:12, titulo:"Mayonesa Cremosa",                marca:"Mavesa",         peso:"450gr", categoria:"salsas",    precioUSD:1.49, imagen:"img/mayonesa-mavesa.jpg" }
-  ]
-};
 
 /* ============================================================
    PERSISTENCIA
@@ -472,7 +443,12 @@ $('dlBtn').addEventListener('click', () => {
    ============================================================ */
 async function init() {
   load();
+   try {
   await cargarDatos();
+} catch (e) {
+      alert('Error cargando datos. Verifica que el archivo exista en GitHub.');
+      return;
+   }
 
   // Aplicar datos de config a la UI
   $('topPhone').textContent = CONFIG.whatsappVisible;
