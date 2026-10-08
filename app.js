@@ -146,8 +146,19 @@ function totals() {
 /* ============================================================
    CARRITO
    ============================================================ */
-function updateCart() {
+function bumpEl(el, cls) {
+  el.classList.remove(cls);
+  void el.offsetWidth; // reinicia la animación
+  el.classList.add(cls);
+}
+
+function updateCart(bump = false) {
   const t = totals();
+  if (bump) {
+    bumpEl($('hdrCount'), 'bump');
+    bumpEl($('flN'), 'bump');
+    bumpEl($('cartBtn'), 'bump');
+  }
   $('hdrCount').textContent = t.items;
   $('flN').textContent = t.items;
   $('flBs').textContent = fmt(t.bs) + ' Bs.';
@@ -174,8 +185,10 @@ function renderCategorias() {
   nav.querySelector('[data-cat="all"]').classList.toggle('active', state.category === 'all');
 }
 
-function render() {
+function render(animate = true, justId = null) {
   const grid = $('grid');
+  // Solo anima la entrada de tarjetas al filtrar/cargar; no al cambiar cantidades
+  grid.classList.toggle('static', !animate);
   const list = PRODUCTS.filter(p => {
     const c = state.category === 'all' || p.categoria === state.category;
     const q = !state.query
@@ -187,18 +200,18 @@ function render() {
   $('counter').textContent = 'Mostrando ' + list.length + ' producto' + (list.length === 1 ? '' : 's');
   $('empty').style.display = list.length ? 'none' : 'block';
 
-  grid.innerHTML = list.map(p => {
+  grid.innerHTML = list.map((p, idx) => {
     const q = state.quantities[p.id] || 0;
     const bs = priceBs(p);
     const usd = p.precioUSD.toFixed(2);
     const ph = 'https://placehold.co/600x600/f1f5f3/94a3b8?text=' + encodeURIComponent(p.titulo);
 
     return `
-    <article class="card ${q > 0 ? 'sel' : ''}" data-id="${p.id}">
+    <article class="card ${q > 0 ? 'sel' : ''} ${p.id === justId ? 'just' : ''}" data-id="${p.id}" style="--i:${Math.min(idx, 12)}">
       <div class="img">
         <span class="badge-cat">${CAT_LABEL[p.categoria] || p.categoria}</span>
         ${q > 0 ? `<span class="badge-qty">x${q}</span>` : ''}
-        <img src="${p.imagen}" alt="${p.titulo}" loading="lazy" onerror="this.onerror=null;this.src='${ph}'">
+        <img src="${p.imagen}" alt="${p.titulo}" loading="lazy" decoding="async" onload="this.parentNode.classList.add('ld')" onerror="this.onerror=null;this.src='${ph}'">
       </div>
       <div class="brand-line"><span class="b">${p.marca}</span><span class="w">${p.peso}</span></div>
       <h3>${p.titulo}</h3>
@@ -220,8 +233,8 @@ function render() {
    ============================================================ */
 function changeQty(id, delta) {
   state.quantities[id] = Math.max(0, (state.quantities[id] || 0) + delta);
-  render();
-  updateCart();
+  render(false, id);
+  updateCart(delta > 0);
   save();
 }
 
@@ -247,6 +260,16 @@ $('grid').addEventListener('click', e => {
   const btn = e.target.closest('[data-act]');
   if (!btn || btn.tagName === 'INPUT') return;
   const id = +btn.closest('.card').dataset.id;
+  // Efecto ripple en el botón "Agregar"
+  if (btn.classList.contains('add')) {
+    const r = btn.getBoundingClientRect();
+    const s = Math.max(r.width, r.height);
+    const sp = document.createElement('span');
+    sp.className = 'ripple';
+    sp.style.cssText = `width:${s}px;height:${s}px;left:${e.clientX - r.left - s / 2}px;top:${e.clientY - r.top - s / 2}px`;
+    btn.appendChild(sp);
+    setTimeout(() => sp.remove(), 600);
+  }
   changeQty(id, btn.dataset.act === 'inc' ? 1 : -1);
 });
 
@@ -256,7 +279,7 @@ $('grid').addEventListener('change', e => {
   let n = parseInt(e.target.value, 10);
   if (isNaN(n) || n < 0) n = 0;
   state.quantities[id] = n;
-  render();
+  render(false, id);
   updateCart();
   save();
 });
@@ -482,6 +505,19 @@ async function init() {
   renderCategorias();
   render();
   updateCart();
+
+  // Animaciones al hacer scroll (ligero, se desconecta tras mostrar)
+  const revealEls = document.querySelectorAll('.reveal');
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); }
+      });
+    }, { threshold: 0.15 });
+    revealEls.forEach(el => io.observe(el));
+  } else {
+    revealEls.forEach(el => el.classList.add('in'));
+  }
 
   if (state.customerName) {
     $('hdrName').textContent = state.customerName;
