@@ -133,7 +133,19 @@ function updateCart(bump = false) {
   if ($('flN')) $('flN').textContent = t.items;
   if ($('flBs')) $('flBs').textContent = fmt(t.bs) + ' Bs.';
   if ($('flUsd')) $('flUsd').textContent = '($' + t.usd.toFixed(2) + ')';
-  if ($('floatBar')) $('floatBar').style.display = t.items > 0 ? 'block' : 'none';
+  
+  const floatBar = $('floatBar');
+  const body = document.body;
+  
+  if (floatBar) {
+    if (t.items > 0) {
+      floatBar.style.display = 'block';
+      body.classList.add('has-floatbar');   // NUEVO: Añade padding al main
+    } else {
+      floatBar.style.display = 'none';
+      body.classList.remove('has-floatbar'); // NUEVO: Quita el padding
+    }
+  }
 }
 
 /* ============================================================
