@@ -174,7 +174,7 @@ function renderCategorias() {
   const dropdownContent = $('dropdownContent');
   if (dropdownContent) {
     dropdownContent.innerHTML = CATEGORIAS.map(c => 
-      `<a href="#" data-cat="${c.id}"><i class="fa-solid ${c.icono}" style="margin-right:8px; color:var(--green-primary);"></i>${c.nombre}</a>`
+      `<a href="#" data-cat="${c.id}"><i class="fa-solid ${c.icono}" style="margin-right:8px; color:var(--green-accent);"></i>${c.nombre}</a>`
     ).join('');
   }
 
@@ -211,7 +211,7 @@ function render(animate = true, justId = null) {
     const q = state.quantities[p.id] || 0;
     const bs = priceBs(p);
     const usd = p.precioUSD.toFixed(2);
-    const ph = 'https://placehold.co/600x600/f1f5f3/94a3b8?text=' + encodeURIComponent(p.titulo);
+    const ph = 'https://placehold.co/600x600/1f2937/9ca3af?text=' + encodeURIComponent(p.titulo);
 
     return `
     <article class="card ${q > 0 ? 'sel' : ''} ${p.id === justId ? 'just' : ''}" data-id="${p.id}" style="--i:${Math.min(idx, 12)}">
@@ -304,11 +304,36 @@ document.addEventListener('click', e => {
     // Si el clic fue en el dropdown, actualizar también el botón "Todos" o el botón principal
     if (!catBtn.classList.contains('cat')) {
         document.querySelectorAll('.cat').forEach(x => x.classList.remove('active'));
-        // Opcional: marcar el botón "Categorías" como activo si quieres
     }
+
+    // Cerrar el dropdown en móvil
+    $('dropdownContent').classList.remove('show');
+    $('dropdownOverlay').classList.remove('show');
 
     render();
   }
+});
+
+// Lógica para el menú desplegable en móvil
+$('catDropdownBtn').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const dropdown = $('dropdownContent');
+  const overlay = $('dropdownOverlay');
+  
+  // Si ya está abierto, cerrarlo
+  if (dropdown.classList.contains('show')) {
+    dropdown.classList.remove('show');
+    overlay.classList.remove('show');
+  } else {
+    dropdown.classList.add('show');
+    overlay.classList.add('show');
+  }
+});
+
+// Cerrar dropdown al hacer clic en el overlay
+$('dropdownOverlay').addEventListener('click', () => {
+  $('dropdownContent').classList.remove('show');
+  $('dropdownOverlay').classList.remove('show');
 });
 
 $('searchInput').addEventListener('input', e => {
@@ -465,23 +490,6 @@ $('waBtn').addEventListener('click', () => {
     if (state.quantities && Object.keys(state.quantities).length > 0 && !totals().items) return;
     if (Object.values(state.quantities).some(v => v > 0)) limpiarPedido();
   }, 1200);
-});
-
-/* ============================================================
-   DESCARGAR index.html
-   ============================================================ */
-$('dlBtn').addEventListener('click', () => {
-  const html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
-  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = 'index.html';
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-  toast('Descargando index.html');
 });
 
 /* ============================================================
