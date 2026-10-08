@@ -1,24 +1,19 @@
 /* ============================================================
-   PALETA — Modo Oscuro con Acentos Verdes (Inspirado en la imagen)
+   PALETA — Modo Oscuro con Acentos Verdes
    ============================================================ */
 :root {
-  /* Colores principales de la imagen */
-  --green-dark: #0a2e1a;      /* Fondo del header/hero */
-  --green-primary: #1a5c2a;   /* Verde principal de botones */
-  --green-light: #1e3a2a;     /* Fondos suaves (ahora oscuro) */
-  --green-accent: #4caf50;    /* Verde brillante para iconos */
-  --yellow: #ffc107;          /* Amarillo para ofertas */
-  --red: #e53935;             /* Rojo para precios/acciones */
+  --green-dark: #0a2e1a;
+  --green-primary: #1a5c2a;
+  --green-light: #1e3a2a;
+  --green-accent: #4caf50;
+  --yellow: #ffc107;
+  --red: #e53935;
   --red-dark: #c62828;
-  
-  /* Neutros (Modo Oscuro) */
-  --ink: #e5e7eb;             /* Texto principal claro */
-  --muted: #9ca3af;           /* Texto secundario */
-  --line: #2d3748;            /* Bordes oscuros */
-  --bg: #111827;              /* Fondo general oscuro */
-  --card: #1f2937;            /* Fondo de tarjetas oscuro */
-  
-  /* Sombras y radios */
+  --ink: #e5e7eb;
+  --muted: #9ca3af;
+  --line: #2d3748;
+  --bg: #111827;
+  --card: #1f2937;
   --radius: 16px;
   --radius-sm: 8px;
   --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
@@ -28,8 +23,9 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
+
 /* ============================================================
-   BODY: Estructura flex para empujar el footer hacia abajo
+   BODY — Estructura flex para footer siempre abajo
    ============================================================ */
 body {
   font-family: 'Inter', system-ui, sans-serif;
@@ -43,11 +39,10 @@ body {
   overflow-x: hidden;
 }
 
-/* El main debe crecer para ocupar el espacio disponible */
 main.wrap {
-  flex: 1;                    /* NUEVO: Empuja el footer hacia abajo */
-  padding-bottom: 40px;       /* NUEVO: Espacio extra antes del footer */
-  transition: padding-button 0.3s var(--ease);
+  flex: 1;
+  padding-bottom: 40px;
+  transition: padding-bottom 0.3s var(--ease);
 }
 
 body.has-floatbar main.wrap {
@@ -94,7 +89,7 @@ h1, h2, h3, .display { font-family: 'Poppins', 'Inter', sans-serif; }
 }
 
 /* ============ HEADER ============ */
-header. {
+header.main {
   background: var(--green-dark);
   position: sticky;
   top: 0;
@@ -208,7 +203,7 @@ header. {
 .cart-btn.bump i { animation: pop 0.4s; }
 .n.bump { animation: pop 0.4s; }
 
-/* ============ MENÚS DESPLEGABLES ============ */
+/* ============ CATEGORÍAS Y DROPDOWN ============ */
 .catnav {
   background: var(--card);
   border-bottom: 1px solid var(--line);
@@ -251,11 +246,7 @@ header. {
 }
 .cat.active i { color: var(--yellow); }
 
-/* Dropdown Menu (Categorías) */
-.dropdown {
-  position: relative;
-  display: inline-block;
-}
+.dropdown { position: relative; display: inline-block; }
 .dropdown-menu {
   display: none;
   position: absolute;
@@ -281,7 +272,6 @@ header. {
 .dropdown-menu a:hover { background: var(--green-light); color: var(--green-accent); }
 .dropdown:hover .dropdown-menu { display: block; }
 
-/* Para móvil: Mostrar el dropdown al hacer clic (JS) o hover */
 @media (max-width: 860px) {
   .dropdown-menu {
     position: fixed;
@@ -295,11 +285,7 @@ header. {
     display: none;
     margin-top: 0;
   }
-  .dropdown-menu.show {
-    display: block;
-    animation: fadeUp 0.3s var(--ease);
-  }
-  /* Ocultar el dropdown al hacer clic fuera */
+  .dropdown-menu.show { display: block; animation: fadeUp 0.3s var(--ease); }
   .dropdown-overlay {
     display: none;
     position: fixed;
@@ -318,7 +304,7 @@ header. {
   margin: 24px 0;
   animation: fadeUp 0.7s var(--ease) both;
 }
-.hero- {
+.hero-main {
   border-radius: 24px;
   background: linear-gradient(135deg, var(--green-dark), var(--green-primary));
   color: #fff;
@@ -330,7 +316,7 @@ header. {
   justify-content: center;
   min-height: 280px;
 }
-.hero-::before {
+.hero-main::before {
   content: '';
   position: absolute;
   right: -40px;
@@ -400,7 +386,7 @@ header. {
 .mini b { font-family: 'Poppins'; font-size: 18px; }
 .mini span { font-size: 12px; opacity: 0.9; margin-top: 4px; }
 
-/* ============ CINTA DE OFERTAS ============ */
+/* ============ TICKER ============ */
 .ticker {
   background: var(--yellow);
   color: #3e2723;
@@ -488,6 +474,8 @@ header. {
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 20px;
 }
+
+/* TARJETA: altura consistente, sin deformación */
 .card {
   background: var(--card);
   border: 1px solid var(--line);
@@ -497,32 +485,31 @@ header. {
   flex-direction: column;
   transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease), border-color 0.2s;
   position: relative;
-  animation: fadeUp 0.5s var(--ease) both;
-  animation-delay: calc(var(--i, 0) * 45ms);
-  /* Eliminado content-visibility para evitar el bug de tamaño */
+  /* Altura mínima para que todas las tarjetas se vean iguales */
+  min-height: 380px;
 }
-/* Solo animar cuando el grid está en modo "animado" (carga inicial o filtro) */
+
+/* Animación SOLO en carga inicial */
 .grid:not(.static) .card {
   animation: fadeUp 0.5s var(--ease) both;
   animation-delay: calc(var(--i, 0) * 45ms);
 }
+.grid.static .card { animation: none; }
 
-/* Cuando el grid está en modo "static" (actualización), no animar */
-.grid.static .card {
-  animation: none;
-}
 .card.sel { border-color: var(--green-primary); box-shadow: 0 0 0 3px rgba(26, 92, 42, 0.14); }
+
+/* IMAGEN: altura fija para evitar saltos */
 .img {
-  aspect-ratio: 1/1;
+  width: 100%;
+  height: 180px;
   border-radius: 12px;
   background: #2d3748;
   overflow: hidden;
   position: relative;
   margin-bottom: 12px;
-  display: grid;
-  place-items: center;
 }
 .img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s var(--ease); }
+
 .badge-qty {
   position: absolute;
   top: 8px;
@@ -550,6 +537,7 @@ header. {
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
+
 .brand-line {
   display: flex;
   justify-content: space-between;
@@ -560,6 +548,7 @@ header. {
 }
 .brand-line .b { color: var(--green-accent); text-transform: uppercase; letter-spacing: 0.05em; }
 .brand-line .w { color: var(--muted); background: #2d3748; padding: 2px 8px; border-radius: 6px; }
+
 .card h3 {
   font-size: 14px;
   line-height: 1.3;
@@ -573,6 +562,7 @@ header. {
   font-family: 'Inter';
   color: var(--ink);
 }
+
 .price { margin-top: auto; margin-bottom: 12px; }
 .price .bs { font-family: 'Poppins'; font-size: 20px; font-weight: 700; color: var(--ink); }
 .price .bs small { font-size: 11px; color: var(--muted); font-weight: 600; }
@@ -586,16 +576,15 @@ header. {
   padding: 2px 8px;
   border-radius: 6px;
 }
-/* El bloque de cantidad y el botón "Agregar" deben tener la MISMA altura
-   para que la tarjeta no cambie de tamaño al alternar entre ellos */
-.add,
-.step {
-  height: 44px;              /* NUEVO: altura fija para ambos */
+
+/* BOTÓN "AGREGAR" Y "STEP": MISMA ALTURA para no deformar */
+.add, .step {
+  height: 44px;
   box-sizing: border-box;
+  width: 100%;
 }
 
 .add {
-  width: 100%;
   background: var(--green-primary);
   color: #fff;
   font-weight: 700;
@@ -641,17 +630,17 @@ header. {
   color: var(--ink);
   height: 100%;
 }
+
 .empty { display: none; text-align: center; padding: 80px 20px; color: var(--muted); }
 .empty i { font-size: 48px; color: #4b5563; margin-bottom: 16px; }
 .empty h3 { color: var(--ink); margin-bottom: 8px; }
 
-/* ============ FOOTER (ESTÁTICO Y ABAJO) ============ */
+/* ============ FOOTER ============ */
 footer {
   background: var(--green-dark);
   color: #a5d6a7;
-  margin-top: 40px; /* Empuja el footer hacia abajo */
+  margin-top: 40px;
   font-size: 13px;
-  position: relative;
   width: 100%;
   border-top: 1px solid var(--line);
 }
@@ -678,8 +667,6 @@ footer i { color: var(--yellow); width: 20px; }
   padding: 0 16px;
   display: none;
   pointer-events: none;
-  max-height: 100vh;
-  box-sizing: border-box;
 }
 #floatBar .in {
   pointer-events: auto;
@@ -772,6 +759,8 @@ footer i { color: var(--yellow); width: 20px; }
   overflow-y: auto;
 }
 .modal.show { display: flex; animation: fadeIn 0.25s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
 .box {
   background: var(--card);
   width: 100%;
@@ -923,9 +912,10 @@ footer i { color: var(--yellow); width: 20px; }
 #toast.show { opacity: 1; transform: translate(-50%, 0) scale(1); }
 #toast i { color: #4ade80; }
 
-/* ============ RESPONSIVE (MÓVIL OPTIMIZADO) ============ */
-@media (max-width: 520px) {
-   main.wrap { padding-bottom: 40px; }
+/* ============================================================
+   RESPONSIVE — TABLET
+   ============================================================ */
+@media (max-width: 860px) {
   .hero { grid-template-columns: 1fr; }
   .hero-side { grid-template-columns: 1fr 1fr; }
   .benefits { grid-template-columns: 1fr 1fr; }
@@ -936,46 +926,125 @@ footer i { color: var(--yellow); width: 20px; }
   .topbar .hide-m2 { display: none; }
 }
 
+/* ============================================================
+   RESPONSIVE — MÓVIL (OPTIMIZADO, SIN DEFORMACIONES)
+   ============================================================ */
 @media (max-width: 520px) {
-  body { padding-bottom: 100px; }
-  body.has-floatbar main.wrap { padding-bottom: 110px;      /* Más espacio en móvil */ }
-  .add, .step { height: 42px }
+  /* Ajuste de padding para la barra flotante */
+  body.has-floatbar main.wrap { padding-bottom: 130px; }
+  main.wrap { padding-bottom: 40px; }
+
   .wrap { padding: 0 12px; }
   .topbar { font-size: 11px; }
-  .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-  .card { padding: 10px; border-radius: 14px; }
-  .card h3 { font-size: 12.5px; min-height: 34px; }
-  .price .bs { font-size: 17px; }
-  .price .usd { display: block; margin: 4px 0 0; width: fit-content; }
-  .add { padding: 10px; font-size: 12.5px; }
-  .step button { width: 36px; }
-  .brand .logo { width: 38px; height: 38px; font-size: 18px; }
-  .brand b { font-size: 16px; }
-  .cart-btn { padding: 8px 12px; }
-  .hero { margin: 16px 0; gap: 14px; }
-  .hero-main { padding: 28px 20px; min-height: 200px; border-radius: 18px; }
-  .hero-main h2 { font-size: 24px; }
-  .hero-main p { font-size: 13px; }
-  .hero-side { grid-template-columns: 1fr 1fr; gap: 12px; }
-  .mini { padding: 16px; border-radius: 16px; }
-  .mini b { font-size: 14px; }
-  .mini span { font-size: 11px; }
-  .benefits { gap: 10px; }
-  .ben { padding: 12px; gap: 10px; }
-  .ben i { width: 38px; height: 38px; font-size: 16px; }
+
+  /* GRID: 2 columnas exactas */
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  /* TARJETA: altura fija, sin saltos */
+  .card {
+    padding: 10px;
+    border-radius: 14px;
+    min-height: 340px; /* Altura consistente */
+  }
+
+  /* IMAGEN: altura fija en móvil */
+  .img {
+    height: 130px;
+    margin-bottom: 8px;
+  }
+
+  .card h3 {
+    font-size: 12px;
+    min-height: 32px;
+    margin-bottom: 8px;
+  }
+
+  .brand-line { font-size: 9px; margin-bottom: 4px; }
+  .brand-line .w { padding: 1px 6px; }
+
+  .price .bs { font-size: 16px; }
+  .price .usd {
+    display: block;
+    margin: 4px 0 0;
+    width: fit-content;
+    font-size: 10px;
+    padding: 2px 6px;
+  }
+  .price { margin-bottom: 8px; }
+
+  /* BOTONES: altura fija idéntica */
+  .add, .step {
+    height: 38px;
+    font-size: 12px;
+  }
+  .step button { width: 34px; font-size: 12px; }
+  .step input { font-size: 13px; }
+
+  /* Header móvil */
+  .brand .logo { width: 36px; height: 36px; font-size: 16px; }
+  .brand b { font-size: 15px; }
+  .cart-btn { padding: 8px 12px; font-size: 12px; }
+  .cart-btn .n { min-width: 20px; height: 20px; font-size: 10px; }
+
+  /* Hero móvil */
+  .hero { margin: 14px 0; gap: 12px; }
+  .hero-main { padding: 24px 18px; min-height: 180px; border-radius: 16px; }
+  .hero-main h2 { font-size: 22px; }
+  .hero-main p { font-size: 12.5px; margin-bottom: 16px; }
+  .btn-hero { padding: 12px 22px; font-size: 13px; }
+  .hero-side { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .mini { padding: 14px; border-radius: 14px; }
+  .mini i { font-size: 22px; }
+  .mini b { font-size: 13px; }
+  .mini span { font-size: 10.5px; }
+
+  /* Beneficios móvil */
+  .benefits { gap: 8px; margin-bottom: 24px; }
+  .ben { padding: 10px; gap: 8px; border-radius: 12px; }
+  .ben i { width: 34px; height: 34px; font-size: 14px; }
+  .ben b { font-size: 11.5px; }
+  .ben span { font-size: 10px; }
+
+  /* Títulos de sección */
+  .sec-head h2 { font-size: 18px; }
+  .sec-head p { font-size: 11.5px; }
+  .count { font-size: 11px; padding: 5px 10px; }
+  .clear-cart-btn { font-size: 11px; padding: 5px 10px; }
+
+  /* Ocultar la tasa BCV en móvil */
   .chip.rate .lbl { display: none; }
-  .sec-head h2 { font-size: 20px; }
+
+  /* Modales como bottom sheet */
   .modal { align-items: flex-end; padding: 0; }
   .box { max-width: none; border-radius: 24px 24px 0 0; max-height: 92vh; }
   .welcome { padding: 28px 20px 32px; }
-  #toast { bottom: 95px; }
+
+  /* Toast y barra flotante */
+  #toast { bottom: 95px; font-size: 13px; padding: 12px 18px; }
   #floatBar { bottom: 10px; padding: 0 10px; }
-  .fl-l b { font-size: 16px; }
-  .fl-go { padding: 12px 16px; }
+  .fl-l b { font-size: 15px; }
+  .fl-l em { font-size: 11px; }
+  .fl-ico { width: 42px; height: 42px; font-size: 18px; }
+  .fl-go { padding: 12px 16px; font-size: 12.5px; }
+  .fl-clear { width: 42px; font-size: 14px; }
+
+  /* Footer móvil */
+  .foot-grid { padding: 30px 0 20px; gap: 24px; }
+  footer { margin-top: 30px; }
 }
 
-/* ============ ACCESIBILIDAD ============ */
+/* ============================================================
+   ACCESIBILIDAD
+   ============================================================ */
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
   .reveal { opacity: 1; transform: none; }
 }
