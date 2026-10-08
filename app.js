@@ -5,13 +5,13 @@ let CONFIG = {
   tienda: "Inversiones Chupaalperro 668 C.A",
   whatsapp: "584126887277",
   whatsappVisible: "0412-688-7277",
-  tasaBCV: 0,	// se sobrescribe al cargar productos.json
+  tasaBCV: 0,
   banco: { codigo:"0102 - Banco de Venezuela", cedula:"V-12123123", telefono:"04126887277" }
 };
 
-let PRODUCTS = [];   // Se llena desde productos.json
-let CATEGORIAS = []; // Se llena desde productos.json
-let CAT_LABEL = {};  // Mapa id → nombre
+let PRODUCTS = [];
+let CATEGORIAS = [];
+let CAT_LABEL = {};
 
 const STORE_KEY = 'tienda_app_state_v5';
 
@@ -26,63 +26,32 @@ let state = {
 const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('es-VE', { minimumFractionDigits:2, maximumFractionDigits:2 });
 
-/* Convierte precioUSD a Bs según la tasa actual */
 function priceBs(p) { return p.precioUSD * CONFIG.tasaBCV; }
 
 /* ============================================================
-   CARGA DE DATOS (productos.json)
+   CARGA DE DATOS (Fetch moderno - ideal para GitHub Pages)
    ============================================================ */
-function cargarDatos() {
-  return new Promise((resolve, reject) => {
-    const scripts = document.getElementsByTagName('script');
-    let basePath = '';
-    for (let s of scripts) {
-      if (s.src && s.src.includes('app.js')) {
-        basePath = s.src.substring(0, s.src.lastIndexOf('/') + 1);
-        break;
-      }
-    }
-
-    const url = basePath + 'productos.json?v=' + Date.now();
-    console.log('🔍 Intentando cargar:', url);
-
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState !== 4) return;
-
-      if (xhr.status === 200 || xhr.status === 0) {
-        try {
-          const data = JSON.parse(xhr.responseText);
-          aplicarDatos(data);
-          console.log('✅ productos.json cargado. Tasa BCV =', CONFIG.tasaBCV);
-          resolve(true);
-        } catch (e) {
-          console.error('❌ JSON inválido:', e);
-          reject(new Error('El JSON tiene un error de sintaxis'));
-        }
-      } else {
-        console.error('❌ Error HTTP:', xhr.status);
-        reject(new Error('No se encontró productos.json (HTTP ' + xhr.status + ')'));
-      }
-    };
-
-    xhr.onerror = () => {
-      console.error('❌ Error de red');
-      reject(new Error('Error de red'));
-    };
-
-    xhr.send();
-  });
+async function cargarDatos() {
+  try {
+    // Ruta relativa simple. GitHub Pages sirve el JSON desde la misma carpeta.
+    const respuesta = await fetch('productos.json?v=' + Date.now());
+    if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
+    const data = await respuesta.json();
+    aplicarDatos(data);
+    console.log('✅ productos.json cargado. Tasa BCV =', CONFIG.tasaBCV);
+  } catch (e) {
+    console.error('❌ Error cargando productos.json:', e);
+    alert('No se pudo cargar productos.json. Verifica que el archivo exista y tenga formato JSON válido.');
+    throw e; // Detener la ejecución si no hay datos
+  }
 }
 
 function aplicarDatos(data) {
   if (data.config) {
     CONFIG = Object.assign(CONFIG, data.config);
-     if (data.config.tasaBCV) {
-        CONFIG.tasaBCV = parseFloat(data.config.tasaBCV) || CONFIG.tasaBCV;
-        }
+    if (data.config.tasaBCV) {
+      CONFIG.tasaBCV = parseFloat(data.config.tasaBCV) || CONFIG.tasaBCV;
+    }
   }
   if (data.categorias) {
     CATEGORIAS = data.categorias;
@@ -92,7 +61,7 @@ function aplicarDatos(data) {
   if (data.productos) {
     PRODUCTS = data.productos;
   }
-   console.log('✅ Datos cargados. Tasa BCV =', CONFIG.tasaBCV);
+  console.log('✅ Datos cargados. Tasa BCV =', CONFIG.tasaBCV);
 }
 
 /* ============================================================
@@ -149,7 +118,7 @@ function totals() {
 function bumpEl(el, cls) {
   if (!el) return;
   el.classList.remove(cls);
-  void el.offsetWidth; // reinicia la animación
+  void el.offsetWidth;
   el.classList.add(cls);
 }
 
@@ -174,10 +143,8 @@ function renderCategorias() {
   const nav = $('catNav');
   if (!nav) return;
   
-  // Limpiar categorías antiguas (excepto el botón "Todos" y el dropdown)
   nav.querySelectorAll('.cat:not([data-cat="all"]):not(.dropdown .cat)').forEach(b => b.remove());
   
-  // Actualizar el menú desplegable si existe
   const dropdownContent = $('dropdownContent');
   if (dropdownContent) {
     dropdownContent.innerHTML = CATEGORIAS.map(c => 
@@ -185,7 +152,6 @@ function renderCategorias() {
     ).join('');
   }
 
-  // Insertar las categorías en la barra de navegación (excepto "Todos")
   CATEGORIAS.forEach(c => {
     const b = document.createElement('button');
     b.className = 'cat';
@@ -195,7 +161,6 @@ function renderCategorias() {
     nav.appendChild(b);
   });
   
-  // Marca activo "Todos" si corresponde
   const allBtn = nav.querySelector('[data-cat="all"]');
   if(allBtn) allBtn.classList.toggle('active', state.category === 'all');
 }
@@ -300,7 +265,7 @@ if ($('grid')) {
   });
 }
 
-// Manejo del clic en las categorías (incluyendo el menú desplegable)
+// Manejo del clic en las categorías
 document.addEventListener('click', e => {
   const catBtn = e.target.closest('[data-cat]');
   if (catBtn) {
@@ -308,25 +273,25 @@ document.addEventListener('click', e => {
     const cat = catBtn.dataset.cat;
     state.category = cat;
     
-    // Actualizar clases activas en la barra de navegación
     document.querySelectorAll('.cat').forEach(x => x.classList.toggle('active', x.dataset.cat === cat));
     
-    // Si el clic fue en el dropdown, actualizar también el botón "Todos" o el botón principal
     if (!catBtn.classList.contains('cat')) {
         document.querySelectorAll('.cat').forEach(x => x.classList.remove('active'));
     }
 
-    // Cerrar el dropdown en móvil
-    if ($('dropdownContent')) $('dropdownContent').classList.remove('show');
-    if ($('dropdownOverlay')) $('dropdownOverlay').classList.remove('show');
+    const dropdown = $('dropdownContent');
+    const overlay = $('dropdownOverlay');
+    if (dropdown) dropdown.classList.remove('show');
+    if (overlay) overlay.classList.remove('show');
 
     render();
   }
 });
 
-// Lógica para el menú desplegable en móvil
-if ($('catDropdownBtn')) {
-  $('catDropdownBtn').addEventListener('click', (e) => {
+// Lógica para el menú desplegable en móvil (CON VERIFICACIÓN DE NULL)
+const catDropdownBtn = $('catDropdownBtn');
+if (catDropdownBtn) {
+  catDropdownBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     const dropdown = $('dropdownContent');
     const overlay = $('dropdownOverlay');
@@ -343,11 +308,12 @@ if ($('catDropdownBtn')) {
   });
 }
 
-// Cerrar dropdown al hacer clic en el overlay
-if ($('dropdownOverlay')) {
-  $('dropdownOverlay').addEventListener('click', () => {
-    if ($('dropdownContent')) $('dropdownContent').classList.remove('show');
-    $('dropdownOverlay').classList.remove('show');
+const dropdownOverlay = $('dropdownOverlay');
+if (dropdownOverlay) {
+  dropdownOverlay.addEventListener('click', () => {
+    const dropdown = $('dropdownContent');
+    if (dropdown) dropdown.classList.remove('show');
+    dropdownOverlay.classList.remove('show');
   });
 }
 
@@ -368,7 +334,6 @@ if ($('clearBtn')) {
   });
 }
 
-/* Botones vaciar pedido */
 if ($('clearCartBtn')) $('clearCartBtn').addEventListener('click', vaciarPedido);
 if ($('flClear')) $('flClear').addEventListener('click', vaciarPedido);
 
@@ -524,12 +489,12 @@ if ($('waBtn')) {
    ============================================================ */
 async function init() {
   load();
-   try {
-  await cargarDatos();
-} catch (e) {
-      alert('Error cargando datos. Verifica que el archivo exista en GitHub.');
-      return;
-   }
+  try {
+    await cargarDatos();
+  } catch (e) {
+    // El error ya se mostró en cargarDatos
+    return;
+  }
 
   if ($('topPhone')) $('topPhone').textContent = CONFIG.whatsappVisible;
   if ($('footPhone')) $('footPhone').textContent = CONFIG.whatsappVisible;
