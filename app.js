@@ -37,29 +37,48 @@ function priceBs(p) { return p.precioUSD * CONFIG.tasaBCV; }
    ============================================================ */
 function cargarDatos() {
   return new Promise((resolve, reject) => {
-    const  = new XMLHttpRequest();
-    xhr.open('GET', './productos.json?v=' + Data.now(), true);
-    xhr.onreadystatechange = function () {
-      if (xhr.readyState === 4) {
-        if (xhr.status === 200 || xhr.status === 0) {
-          try {
-            const data = JSON.parse(xhr.responseText);
-            aplicarDatos(data);
-            console.log('✅ La data está cargado. Tasa =', CONFIG.tasaBCV);
-            resolve(true);
-          } catch (e) { 
-             console.error('archivo de datos inválido', e); 
-             reject(e);
-          }
-        } else {
-           console.error('❌ No se pudo leer los datos. Status:', xhr.status);
-           reject(new Error('No se pudo leer los datos'));
+    // Detectar la ruta base donde está app.js
+    const scripts = document.getElementsByTagName('script');
+    let basePath = '';
+    for (let s of scripts) {
+      if (s.src && s.src.includes('app.js')) {
+        basePath = s.src.substring(0, s.src.lastIndexOf('/') + 1);
+        break;
       }
     }
-   };
-    xhr.onerror = () => reject(new Error('Error de red'));
+
+    const url = basePath + 'productos.json?v=' + Date.now();
+    console.log('🔍 Intentando cargar:', url);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState !== 4) return;
+
+      if (xhr.status === 200 || xhr.status === 0) {
+        try {
+          const data = JSON.parse(xhr.responseText);
+          aplicarDatos(data);
+          console.log('✅ productos.json cargado. Tasa BCV =', CONFIG.tasaBCV);
+          resolve(true);
+        } catch (e) {
+          console.error('❌ JSON inválido:', e);
+          reject(new Error('El JSON tiene un error de sintaxis'));
+        }
+      } else {
+        console.error('❌ Error HTTP:', xhr.status);
+        reject(new Error('No se encontró productos.json (HTTP ' + xhr.status + ')'));
+      }
+    };
+
+    xhr.onerror = () => {
+      console.error('❌ Error de red');
+      reject(new Error('Error de red'));
+    };
+
     xhr.send();
-   });
+  });
 }
 
 function aplicarDatos(data) {
