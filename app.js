@@ -37,8 +37,8 @@ function priceBs(p) { return p.precioUSD * CONFIG.tasaBCV; }
    ============================================================ */
 function cargarDatos() {
   return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('GET', 'productos.json?v=' + Data.now(), true);
+    const  = new XMLHttpRequest();
+    xhr.open('GET', './productos.json?v=' + Data.now(), true);
     xhr.onreadystatechange = function () {
       if (xhr.readyState === 4) {
         if (xhr.status === 200 || xhr.status === 0) {
