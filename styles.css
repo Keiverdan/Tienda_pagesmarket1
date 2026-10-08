@@ -28,6 +28,9 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html { scroll-behavior: smooth; }
+/* ============================================================
+   BODY: Estructura flex para empujar el footer hacia abajo
+   ============================================================ */
 body {
   font-family: 'Inter', system-ui, sans-serif;
   background: var(--bg);
@@ -38,6 +41,12 @@ body {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+}
+
+/* El main debe crecer para ocupar el espacio disponible */
+main.wrap {
+  flex: 1;                    /* NUEVO: Empuja el footer hacia abajo */
+  padding-bottom: 100px;       /* NUEVO: Espacio extra antes del footer */
 }
 
 button { font-family: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
@@ -80,7 +89,7 @@ h1, h2, h3, .display { font-family: 'Poppins', 'Inter', sans-serif; }
 }
 
 /* ============ HEADER ============ */
-header.main {
+header. {
   background: var(--green-dark);
   position: sticky;
   top: 0;
@@ -304,7 +313,7 @@ header.main {
   margin: 24px 0;
   animation: fadeUp 0.7s var(--ease) both;
 }
-.hero-main {
+.hero- {
   border-radius: 24px;
   background: linear-gradient(135deg, var(--green-dark), var(--green-primary));
   color: #fff;
@@ -316,7 +325,7 @@ header.main {
   justify-content: center;
   min-height: 280px;
 }
-.hero-main::before {
+.hero-::before {
   content: '';
   position: absolute;
   right: -40px;
@@ -617,7 +626,7 @@ header.main {
 footer {
   background: var(--green-dark);
   color: #a5d6a7;
-  margin-top: auto; /* Empuja el footer hacia abajo */
+  margin-top: 40px; /* Empuja el footer hacia abajo */
   font-size: 13px;
   position: relative;
   width: 100%;
@@ -890,7 +899,7 @@ footer i { color: var(--yellow); width: 20px; }
 #toast i { color: #4ade80; }
 
 /* ============ RESPONSIVE (MÓVIL OPTIMIZADO) ============ */
-@media (max-width: 860px) {
+@media (max-width: 520px) {
   .hero { grid-template-columns: 1fr; }
   .hero-side { grid-template-columns: 1fr 1fr; }
   .benefits { grid-template-columns: 1fr 1fr; }
