@@ -56,21 +56,20 @@
         <!-- Botón "Todos" -->
         <button class="cat active" data-cat="all"><i class="fa-solid fa-border-all"></i>Todos</button>
         
-        <!-- Menú Desplegable de Categorías (Ejemplo) -->
-        <div class="dropdown">
-          <button class="cat"><i class="fa-solid fa-bars"></i>Categorías <i class="fa-solid fa-caret-down" style="font-size:10px; margin-left:4px;"></i></button>
+        <!-- Menú Desplegable de Categorías (Mobile Friendly) -->
+        <div class="dropdown" id="catDropdown">
+          <button class="cat" id="catDropdownBtn"><i class="fa-solid fa-bars"></i>Categorías <i class="fa-solid fa-caret-down" style="font-size:10px; margin-left:4px;"></i></button>
           <div class="dropdown-menu" id="dropdownContent">
-            <!-- Se llenará dinámicamente con JS o estático aquí -->
-             <a href="#" data-cat="frutas">Frutas y Verduras</a>
-             <a href="#" data-cat="lacteos">Lácteos</a>
-             <a href="#" data-cat="carnes">Carnes</a>
-             <a href="#" data-cat="limpieza">Limpieza</a>
+            <!-- Se llenará dinámicamente con JS -->
           </div>
         </div>
         <!-- Las categorías generadas dinámicamente por JS se insertarán aquí -->
       </div>
     </div>
   </header>
+
+  <!-- Overlay para el menú desplegable en móvil -->
+  <div class="dropdown-overlay" id="dropdownOverlay"></div>
 
   <main class="wrap">
     <section class="hero">
@@ -149,10 +148,7 @@
           </ul>
         </div>
       </div>
-      <div class="dl-zone">
-        <div class="t"><b>Código de la aplicación</b><span>Descarga todo el código unificado en un solo archivo.</span></div>
-        <button class="dl-btn" id="dlBtn"><i class="fa-solid fa-file-code"></i>Descargar index.html</button>
-      </div>
+      <!-- SECCIÓN DE DESCARGA ELIMINADA -->
       <div class="copy">© <span id="yr">2025</span> <span id="footBrand2">Inversiones Chupaalperro 668 C.A</span> · Todos los derechos reservados.</div>
     </div>
   </footer>
