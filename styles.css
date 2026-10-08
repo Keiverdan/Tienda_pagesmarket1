@@ -35,18 +35,23 @@ body {
   font-family: 'Inter', system-ui, sans-serif;
   background: var(--bg);
   color: var(--ink);
-  padding-bottom: 120px;
   -webkit-tap-highlight-color: transparent;
   -webkit-font-smoothing: antialiased;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 /* El main debe crecer para ocupar el espacio disponible */
 main.wrap {
   flex: 1;                    /* NUEVO: Empuja el footer hacia abajo */
-  padding-bottom: 100px;       /* NUEVO: Espacio extra antes del footer */
+  padding-bottom: 40px;       /* NUEVO: Espacio extra antes del footer */
+  transition: padding-button 0.3s var(--ease);
+}
+
+body.has-floatbar main.wrap {
+  padding-bottom: 120px;
 }
 
 button { font-family: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
@@ -490,11 +495,21 @@ header. {
   padding: 14px;
   display: flex;
   flex-direction: column;
-  transition: all 0.3s var(--ease);
+  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease), border-color 0.2s;
   position: relative;
   animation: fadeUp 0.5s var(--ease) both;
   animation-delay: calc(var(--i, 0) * 45ms);
   /* Eliminado content-visibility para evitar el bug de tamaño */
+}
+/* Solo animar cuando el grid está en modo "animado" (carga inicial o filtro) */
+.grid:not(.static) .card {
+  animation: fadeUp 0.5s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+
+/* Cuando el grid está en modo "static" (actualización), no animar */
+.grid.static .card {
+  animation: none;
 }
 .card.sel { border-color: var(--green-primary); box-shadow: 0 0 0 3px rgba(26, 92, 42, 0.14); }
 .img {
@@ -571,13 +586,21 @@ header. {
   padding: 2px 8px;
   border-radius: 6px;
 }
+/* El bloque de cantidad y el botón "Agregar" deben tener la MISMA altura
+   para que la tarjeta no cambie de tamaño al alternar entre ellos */
+.add,
+.step {
+  height: 44px;              /* NUEVO: altura fija para ambos */
+  box-sizing: border-box;
+}
+
 .add {
   width: 100%;
   background: var(--green-primary);
   color: #fff;
   font-weight: 700;
   font-size: 13px;
-  padding: 12px;
+  padding: 0 12px;
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -587,8 +610,7 @@ header. {
   position: relative;
   overflow: hidden;
 }
-.add:hover { background: var(--green-dark); box-shadow: 0 8px 18px rgba(26, 92, 42, 0.3); }
-.add:active { transform: scale(0.96); }
+
 .step {
   display: flex;
   align-items: center;
@@ -596,17 +618,17 @@ header. {
   border-radius: 12px;
   overflow: hidden;
   background: var(--card);
-  animation: pop 0.35s;
 }
+
 .step button {
   width: 42px;
-  height: 40px;
+  height: 100%;
   background: var(--green-light);
   color: var(--green-accent);
   font-size: 14px;
   transition: all 0.15s;
 }
-.step button:active { background: var(--green-primary); color: #fff; }
+
 .step input {
   flex: 1;
   min-width: 0;
@@ -617,6 +639,7 @@ header. {
   outline: 0;
   background: transparent;
   color: var(--ink);
+  height: 100%;
 }
 .empty { display: none; text-align: center; padding: 80px 20px; color: var(--muted); }
 .empty i { font-size: 48px; color: #4b5563; margin-bottom: 16px; }
@@ -655,6 +678,8 @@ footer i { color: var(--yellow); width: 20px; }
   padding: 0 16px;
   display: none;
   pointer-events: none;
+  max-height: 100vh;
+  box-sizing: border-box;
 }
 #floatBar .in {
   pointer-events: auto;
@@ -900,6 +925,7 @@ footer i { color: var(--yellow); width: 20px; }
 
 /* ============ RESPONSIVE (MÓVIL OPTIMIZADO) ============ */
 @media (max-width: 520px) {
+   main.wrap { padding-bottom: 40px; }
   .hero { grid-template-columns: 1fr; }
   .hero-side { grid-template-columns: 1fr 1fr; }
   .benefits { grid-template-columns: 1fr 1fr; }
@@ -912,6 +938,8 @@ footer i { color: var(--yellow); width: 20px; }
 
 @media (max-width: 520px) {
   body { padding-bottom: 100px; }
+  body.has-floatbar main.wrap { padding-bottom: 110px;      /* Más espacio en móvil */ }
+  .add, .step { height: 42px }
   .wrap { padding: 0 12px; }
   .topbar { font-size: 11px; }
   .grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
