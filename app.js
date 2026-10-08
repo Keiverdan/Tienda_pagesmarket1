@@ -57,8 +57,9 @@ function cargarDatos() {
       }
     }
    };
-    xhr.onerror = () => { reject(new Error('Error de red'));
+    xhr.onerror = () => reject(new Error('Error de red'));
     xhr.send();
+   });
 }
 
 function aplicarDatos(data) {
