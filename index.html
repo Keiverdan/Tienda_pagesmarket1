@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chupaalperro 668 - Supermercado Online</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <div class="topbar">
+    <div class="wrap">
+      <span><i class="fa-solid fa-truck-fast"></i>Tu Local de confianza a tu alcance</span>
+      <div class="right">
+        <span class="hide-m2"><i class="fa-regular fa-clock"></i>Lun–Sáb 6:00am – 8:00pm</span>
+        <span><i class="fa-solid fa-phone"></i><span id="topPhone">0412-688-7277</span></span>
+        <span><span class="save-dot"></span><span id="saveTxt">Guardado</span></span>
+      </div>
+    </div>
+  </div>
+
+  <header class="main">
+    <div class="wrap">
+      <div class="head-row">
+        <div class="brand">
+          <div class="logo"><i class="fa-solid fa-cart-shopping"></i></div>
+          <div><b>Chupaalperro <span>668</span></b><small>Supermercado Online</small></div>
+        </div>
+
+        <div class="search">
+          <i class="fa-solid fa-magnifying-glass ico"></i>
+          <input type="text" id="searchInput" placeholder="Buscar harina, arroz, café, aceite..." autocomplete="off">
+          <button class="clr" id="clearBtn" aria-label="Limpiar"><i class="fa-solid fa-circle-xmark"></i></button>
+        </div>
+
+        <div class="head-actions">
+          <div class="chip rate" title="Tasa BCV">
+            <span class="lbl hide-m">Tasa BCV</span><i class="fa-solid fa-dollar-sign" style="color:var(--yellow)"></i>
+            <input type="number" id="rateInput" readonly value="0"><span>Bs</span>
+          </div>
+          <button class="chip user hide-m" id="userBtn"><i class="fa-regular fa-user"></i><span id="hdrName">Cliente</span><i class="fa-solid fa-pen" style="font-size:10px;opacity:.7"></i></button>
+          <button class="cart-btn" id="cartBtn"><i class="fa-solid fa-bag-shopping"></i><span class="hide-m">Mi pedido</span><span class="n" id="hdrCount">0</span></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="catnav">
+      <div class="wrap" id="catNav">
+        <button class="cat active" data-cat="all"><i class="fa-solid fa-border-all"></i>Todos</button>
+        <!-- Categorías generadas dinámicamente desde JSON -->
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <div class="hero-main">
+        <span class="tag">Ofertas de la semana</span>
+        <h2>Tu mercado completo, directo a tu hogar</h2>
+        <p>Productos frescos y de marcas confiables al mejor precio. Arma tu pedido y págalo por Pago Móvil.</p>
+        <button class="btn-hero" onclick="document.getElementById('catalogo').scrollIntoView()">Ver catálogo <i class="fa-solid fa-arrow-right" style="margin-left:6px"></i></button>
+      </div>
+      <div class="hero-side">
+        <div class="mini o"><i class="fa-solid fa-truck-fast"></i><b>Retiras en la tienda</b><span>Todos tus pedidos están listos!</span></div>
+        <div class="mini d"><i class="fa-solid fa-mobile-screen-button"></i><b>Pago Móvil</b><span>Rápido y seguro</span></div>
+      </div>
+    </section>
+
+    <section class="benefits">
+      <div class="ben"><i class="fa-solid fa-tags"></i><div><b>Mejores precios</b><span>Precios de supermercado</span></div></div>
+      <div class="ben"><i class="fa-solid fa-box-open"></i><div><b>Productos de calidad</b><span>Marcas reconocidas</span></div></div>
+      <div class="ben"><i class="fa-brands fa-whatsapp"></i><div><b>Pedido por WhatsApp</b><span>Atención directa</span></div></div>
+      <div class="ben"><i class="fa-solid fa-shield-halved"></i><div><b>Compra segura</b><span>Factura al instante</span></div></div>
+    </section>
+
+    <section id="catalogo">
+      <div class="sec-head">
+        <div><h2>Catálogo de productos</h2><p>Agrega los productos y arma tu pedido.</p></div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <span class="count" id="counter">Cargando...</span>
+          <button class="clear-cart-btn" id="clearCartBtn" title="Borrar todos los productos seleccionados">
+            <i class="fa-solid fa-trash-can"></i>Vaciar pedido
+          </button>
+        </div>
+      </div>
+      <div class="grid" id="grid"></div>
+      <div class="empty" id="empty">
+        <i class="fa-solid fa-magnifying-glass"></i>
+        <h3>No se encontraron productos</h3>
+        <p>Prueba con otros términos o cambia de categoría.</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div>
+          <div class="foot-brand"><span class="logo"><i class="fa-solid fa-cart-shopping"></i></span><span id="footBrand">Inversiones Chupaalperro 668 C.A</span></div>
+          <p>Tu supermercado digital. Compra desde casa y recibe tu pedido sin complicaciones.</p>
+        </div>
+        <div>
+          <h4>Contacto</h4>
+          <ul>
+            <li><i class="fa-solid fa-phone"></i><span id="footPhone">0412-688-7277</span></li>
+            <li><i class="fa-brands fa-whatsapp"></i>WhatsApp de pedidos</li>
+            <li><i class="fa-regular fa-clock"></i>Lun–Sáb 6:00am – 8:00pm</li>
+          </ul>
+        </div>
+        <div>
+          <h4>Pagos y envíos</h4>
+          <ul>
+            <li><i class="fa-solid fa-mobile-screen-button"></i>Pago Móvil</li>
+            <li><i class="fa-solid fa-truck-fast"></i>Retiras al instante</li>
+            <li><i class="fa-solid fa-receipt"></i>Factura digital</li>
+          </ul>
+        </div>
+      </div>
+      <div class="dl-zone">
+        <div class="t"><b>Código de la aplicación</b><span>Descarga todo el código unificado en un solo archivo.</span></div>
+        <button class="dl-btn" id="dlBtn"><i class="fa-solid fa-file-code"></i>Descargar index.html</button>
+      </div>
+      <div class="copy">© <span id="yr">2025</span> <span id="footBrand2">Inversiones Chupaalperro 668 C.A</span> · Todos los derechos reservados.</div>
+    </div>
+  </footer>
+
+  <div id="floatBar">
+    <div class="in">
+      <div class="fl-l">
+        <div class="fl-ico"><i class="fa-solid fa-bag-shopping"></i><span class="n" id="flN">0</span></div>
+        <div><small>Tu pedido</small><b id="flBs">0,00 Bs.</b><em id="flUsd">($0.00)</em></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="fl-clear" id="flClear" title="Vaciar pedido"><i class="fa-solid fa-trash-can"></i></button>
+        <button class="fl-go" id="flGo">Continuar <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="custModal">
+    <div class="box welcome">
+      <div class="ic"><i class="fa-solid fa-hand"></i></div>
+      <h3>¡Bienvenido!</h3>
+      <p>Ingresa tu nombre para comenzar tu pedido.</p>
+      <form id="custForm">
+        <div class="field"><label for="custName">Nombre y Apellido *</label><input type="text" id="custName" required placeholder="Ej: Juan Pérez"></div>
+        <button class="btn-main" type="submit">Comenzar a comprar</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal" id="invModal">
+    <div class="box">
+      <div class="box-h"><h3><i class="fa-solid fa-receipt"></i>Resumen de factura</h3><button class="x" id="invClose"><i class="fa-solid fa-xmark"></i></button></div>
+      <div class="box-b">
+        <div class="receipt">
+          <div class="rc-h"><h4 id="invBrand">Inversiones Chupaalperro 668 C.A</h4><p id="invDate">--</p><p id="invCust" style="color:var(--ink);font-weight:700">Cliente: --</p></div>
+          <div class="rc-cols"><span>Descripción</span><span>Subtotal</span></div>
+          <div id="invItems"></div>
+          <div class="rc-tot"><span id="invCount">Total: 0 ítems</span><span class="a" id="invTotal">0,00 Bs.</span></div>
+        </div>
+        <div class="pay">
+          <div class="pay-h"><b><i class="fa-solid fa-mobile-screen-button"></i> Pago Móvil</b><button class="copy-btn" id="copyBtn"><i class="fa-solid fa-copy"></i> Copiar</button></div>
+          <div class="pay-d">
+            <div><span>Banco:</span><b id="pmBank"></b></div>
+            <div><span>Cédula:</span><b id="pmId"></b></div>
+            <div><span>Teléfono:</span><b id="pmPhone"></b></div>
+            <div class="tot"><span>Monto exacto:</span><b id="pmTotal">0,00 Bs.</b></div>
+          </div>
+        </div>
+        <div class="field">
+          <label for="refInput"><i class="fa-solid fa-hashtag" style="color:var(--orange)"></i> Nro. de referencia *</label>
+          <input type="text" id="refInput" inputmode="numeric" placeholder="Ej: 849201">
+        </div>
+        <button class="wa" id="waBtn"><i class="fa-brands fa-whatsapp"></i>Enviar pedido por WhatsApp</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast"><i class="fa-solid fa-circle-check"></i><span id="toastMsg"></span></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
