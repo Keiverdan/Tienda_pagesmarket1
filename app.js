@@ -223,9 +223,62 @@ function render(animate = true, justId = null) {
 /* ============================================================
    CAMBIO DE CANTIDAD
    ============================================================ */
+// Reemplaza la función changeQty por esta versión optimizada
 function changeQty(id, delta) {
   state.quantities[id] = Math.max(0, (state.quantities[id] || 0) + delta);
-  render(false, id);
+  
+  // Actualizar SOLO la tarjeta afectada, no todo el grid
+  const card = document.querySelector(`.card[data-id="${id}"]`);
+  if (card) {
+    const p = PRODUCTS.find(x => x.id === id);
+    const q = state.quantities[id] || 0;
+    const bs = priceBs(p);
+    const usd = p.precioUSD.toFixed(2);
+    
+    // Actualizar clases
+    card.classList.toggle('sel', q > 0);
+    
+    // Actualizar badge de cantidad
+    const badge = card.querySelector('.badge-qty');
+    if (q > 0 && !badge) {
+      const img = card.querySelector('.img');
+      const newBadge = document.createElement('span');
+      newBadge.className = 'badge-qty';
+      newBadge.textContent = `x${q}`;
+      img.appendChild(newBadge);
+    } else if (q > 0 && badge) {
+      badge.textContent = `x${q}`;
+    } else if (q === 0 && badge) {
+      badge.remove();
+    }
+    
+    // Actualizar la zona de acción (add vs step)
+    const actionZone = card.querySelector('.add, .step');
+    if (q > 0) {
+      if (actionZone && actionZone.classList.contains('add')) {
+        // Reemplazar botón "Agregar" por el step
+        const step = document.createElement('div');
+        step.className = 'step';
+        step.innerHTML = `
+          <button class="m" data-act="dec" aria-label="Disminuir"><i class="fa-solid fa-minus"></i></button>
+          <input type="number" min="0" step="1" value="${q}" data-act="set" aria-label="Cantidad">
+          <button data-act="inc" aria-label="Aumentar"><i class="fa-solid fa-plus"></i></button>
+        `;
+        actionZone.replaceWith(step);
+      } else if (actionZone && actionZone.classList.contains('step')) {
+        actionZone.querySelector('input').value = q;
+      }
+    } else {
+      if (actionZone && actionZone.classList.contains('step')) {
+        const addBtn = document.createElement('button');
+        addBtn.className = 'add';
+        addBtn.dataset.act = 'inc';
+        addBtn.innerHTML = '<i class="fa-solid fa-cart-plus"></i>Agregar';
+        actionZone.replaceWith(addBtn);
+      }
+    }
+  }
+  
   updateCart(delta > 0);
   save();
 }
