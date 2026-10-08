@@ -213,13 +213,8 @@ header.main {
 .catnav .wrap {
   display: flex;
   gap: 8px;
-  overflow-x: auto;
   padding: 12px 16px;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-  scroll-snap-type: x proximity;
 }
-.catnav .wrap::-webkit-scrollbar { display: none; }
 .cat {
   white-space: nowrap;
   padding: 8px 18px;
@@ -247,56 +242,80 @@ header.main {
 .cat.active i { color: var(--yellow); }
 
 .dropdown { position: relative; display: inline-block; }
+.cat .caret { font-size: 10px; margin-left: 2px; transition: transform 0.25s var(--ease); }
+.cat[aria-expanded="true"] .caret { transform: rotate(180deg); }
+
+/* Fondo detrás del menú: transparente en PC (solo captura el clic fuera), tenue en móvil */
+.dropdown-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 199;
+  background: transparent;
+}
+.dropdown-overlay.show { display: block; }
+
+/* El menú es hijo directo del <body>: ningún contenedor lo recorta ni lo tapa */
 .dropdown-menu {
   display: none;
-  position: absolute;
-  top: 100%;
+  position: fixed;
+  top: 0;
   left: 0;
-  background: var(--card);
-  min-width: 220px;
-  box-shadow: var(--shadow-lg);
-  border-radius: var(--radius-sm);
-  padding: 8px 0;
-  z-index: 100;
-  border: 1px solid var(--line);
-  margin-top: 8px;
+  min-width: 250px;
+  max-height: min(70vh, 520px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 8px;
+  border-radius: 18px;
+  z-index: 200;
 }
+.dropdown-menu.show { display: block; animation: menuIn 0.22s var(--ease); }
+.dropdown-menu::before { content: none; }
+
 .dropdown-menu a {
-  display: block;
-  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 12px;
   color: var(--ink);
   text-decoration: none;
-  font-size: 13px;
-  transition: background 0.2s;
+  font-size: 13.5px;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s;
 }
-.dropdown-menu a:hover { background: var(--green-light); color: var(--green-accent); }
-.dropdown:hover .dropdown-menu { display: block; }
+.dropdown-menu a i { width: 20px; text-align: center; color: var(--green-accent); }
+.dropdown-menu a:hover,
+.dropdown-menu a:focus-visible { background: rgba(76, 175, 80, 0.16); color: #fff; outline: 0; }
+.dropdown-menu a.active { background: rgba(76, 175, 80, 0.26); color: #fff; box-shadow: inset 0 0 0 1px rgba(76, 175, 80, 0.5); }
 
-/* Móvil: Dropdown como bottom sheet, PERO por encima de la barra flotante */
+@keyframes menuIn { from { opacity: 0; transform: translateY(-8px) scale(0.98); } to { opacity: 1; transform: none; } }
+@keyframes sheetUp { from { transform: translateY(100%); } to { transform: none; } }
+
+/* Móvil: panel inferior por encima de la barra flotante */
 @media (max-width: 860px) {
+  .dropdown-overlay.show { background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
   .dropdown-menu {
-    position: fixed;
     top: auto;
     bottom: 0;
     left: 0;
     right: 0;
-    border-radius: 20px 20px 0 0;
-    max-height: 60vh;
-    overflow-y: auto;
-    display: none;
-    margin-top: 0;
-    z-index: 200; /* POR ENCIMA DE LA BARRA FLOTANTE */
-    padding-bottom: 20px;
+    min-width: 0;
+    max-height: 65vh;
+    border-radius: 24px 24px 0 0;
+    padding: 14px 12px calc(20px + env(safe-area-inset-bottom, 0px));
   }
-  .dropdown-menu.show { display: block; animation: fadeUp 0.3s var(--ease); }
-  .dropdown-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.7);
-    z-index: 199; /* Justo debajo del dropdown */
+  .dropdown-menu.show { animation: sheetUp 0.32s var(--ease); }
+  .dropdown-menu::before {
+    content: '';
+    display: block;
+    width: 42px;
+    height: 4px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.25);
+    margin: 0 auto 12px;
   }
-  .dropdown-overlay.show { display: block; }
+  .dropdown-menu a { padding: 14px; font-size: 14.5px; }
 }
 
 /* ============ HERO ============ */
@@ -1062,4 +1081,198 @@ footer i { color: var(--yellow); width: 20px; }
     scroll-behavior: auto !important;
   }
   .reveal { opacity: 1; transform: none; }
+}
+
+/* ============================================================
+   EFECTO GLASS + BRILLO SUAVE EN LAS LETRAS
+   ============================================================ */
+:root {
+  --glass-bg: linear-gradient(145deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.04));
+  --glass-tint: rgba(17, 24, 39, 0.45);
+  --glass-border: rgba(255, 255, 255, 0.14);
+  --glass-hi: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  --glass-blur: blur(16px) saturate(150%);
+  --glow: 0 0 10px rgba(200, 255, 215, 0.22);          /* brillo general (muy suave) */
+  --glow-green: 0 0 12px rgba(76, 175, 80, 0.45);
+  --glow-warm: 0 0 12px rgba(255, 193, 7, 0.40);
+}
+
+/* Fondo con manchas de color para que el cristal tenga qué difuminar */
+html { background: var(--bg); }
+body { background: transparent; text-shadow: var(--glow); }
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(600px 420px at 10% 6%, rgba(76, 175, 80, 0.28), transparent 62%),
+    radial-gradient(700px 480px at 92% 18%, rgba(255, 193, 7, 0.11), transparent 62%),
+    radial-gradient(900px 600px at 50% 105%, rgba(26, 92, 42, 0.38), transparent 62%);
+}
+
+/* Los controles no heredan el brillo por defecto: lo forzamos */
+button, input, textarea { text-shadow: inherit; }
+
+/* Texto oscuro sobre superficies claras: halo blanco más tenue */
+.ticker, .tag, .cart-btn, .btn-hero { text-shadow: 0 0 8px rgba(255, 255, 255, 0.35); }
+.search input:focus { text-shadow: none; }
+
+/* Brillo un poco más presente en títulos y acentos (siempre suave) */
+.brand b, .hero-main h2, .sec-head h2, .price .bs, .fl-l b, .rc-tot .a { text-shadow: 0 0 14px rgba(200, 255, 215, 0.28); }
+.brand-line .b, .cat i, .ben i, .dropdown-menu a i, .step button { text-shadow: var(--glow-green); }
+.topbar i, .brand b span, .mini i, footer i, .price .usd { text-shadow: var(--glow-warm); }
+.fl-l em, .pay-d .tot b { text-shadow: 0 0 10px rgba(229, 57, 53, 0.45); }
+
+/* ---------- Barras superiores ---------- */
+.topbar {
+  background: rgba(10, 46, 26, 0.55);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+header.main {
+  background: rgba(10, 46, 26, 0.62);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--glass-border);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+.catnav { background: rgba(31, 41, 55, 0.30); border-bottom: 1px solid var(--glass-border); }
+
+.chip {
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-hi);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.search input { background: rgba(255, 255, 255, 0.10); border-color: var(--glass-border); box-shadow: var(--glass-hi); }
+
+/* ---------- Categorías ---------- */
+.cat {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-hi);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.cat:hover { background: rgba(76, 175, 80, 0.16); border-color: rgba(76, 175, 80, 0.45); }
+.cat.active {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.55), rgba(26, 92, 42, 0.70));
+  border-color: rgba(76, 175, 80, 0.6);
+  box-shadow: var(--glass-hi), 0 4px 16px rgba(76, 175, 80, 0.30);
+}
+
+.dropdown-menu {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04)), rgba(17, 24, 39, 0.72);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-hi), 0 20px 50px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+}
+
+/* ---------- Hero, banners y beneficios ---------- */
+.hero-main {
+  background: linear-gradient(135deg, rgba(10, 46, 26, 0.78), rgba(26, 92, 42, 0.55));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-hi), var(--shadow-lg);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.mini { border: 1px solid var(--glass-border); box-shadow: var(--glass-hi); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.mini.o { background: linear-gradient(135deg, rgba(229, 57, 53, 0.75), rgba(255, 122, 89, 0.62)); }
+.mini.d { background: linear-gradient(135deg, rgba(26, 26, 26, 0.70), rgba(47, 74, 60, 0.62)); }
+
+.ben { background: var(--glass-bg), var(--glass-tint); border-color: var(--glass-border); box-shadow: var(--glass-hi); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.ben i { background: rgba(76, 175, 80, 0.15); border: 1px solid rgba(76, 175, 80, 0.25); }
+
+.count { background: var(--glass-bg), var(--glass-tint); border-color: var(--glass-border); box-shadow: var(--glass-hi); }
+.clear-cart-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 999px;
+  color: #ff8a80;
+  background: rgba(229, 57, 53, 0.12);
+  border: 1px solid rgba(229, 57, 53, 0.35);
+  box-shadow: var(--glass-hi);
+  transition: background 0.2s, transform 0.2s;
+}
+.clear-cart-btn:hover { background: rgba(229, 57, 53, 0.25); }
+.clear-cart-btn:active { transform: scale(0.96); }
+
+/* ---------- Tarjetas de producto ---------- */
+.card {
+  background: var(--glass-bg), var(--glass-tint);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-hi), 0 8px 24px rgba(0, 0, 0, 0.28);
+}
+.card:hover { border-color: rgba(76, 175, 80, 0.45); box-shadow: var(--glass-hi), 0 14px 34px rgba(0, 0, 0, 0.38); }
+.card.sel { border-color: rgba(76, 175, 80, 0.7); box-shadow: var(--glass-hi), 0 0 0 3px rgba(76, 175, 80, 0.20), 0 0 26px rgba(76, 175, 80, 0.22); }
+/* El desenfoque en decenas de tarjetas pesa en móviles: solo en pantallas grandes */
+@media (min-width: 861px) {
+  .card { backdrop-filter: blur(12px) saturate(140%); -webkit-backdrop-filter: blur(12px) saturate(140%); }
+}
+.img { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.08); }
+.badge-cat {
+  background: rgba(10, 46, 26, 0.55);
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.badge-qty { background: rgba(26, 92, 42, 0.85); border: 1px solid rgba(255, 255, 255, 0.25); backdrop-filter: blur(6px); }
+.brand-line .w { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.08); }
+.price .usd { color: #ffd54f; background: rgba(255, 193, 7, 0.14); border: 1px solid rgba(255, 193, 7, 0.30); }
+.add { background: linear-gradient(135deg, #2e7d32, #1a5c2a); box-shadow: var(--glass-hi), 0 6px 16px rgba(26, 92, 42, 0.40); }
+.step { background: rgba(255, 255, 255, 0.05); border-color: rgba(76, 175, 80, 0.55); }
+.step button { background: rgba(76, 175, 80, 0.14); }
+
+/* ---------- Barra flotante, toast y footer ---------- */
+#floatBar .in {
+  background: var(--glass-bg), rgba(17, 24, 39, 0.55);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-hi), 0 12px 40px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+}
+.fl-clear { background: rgba(229, 57, 53, 0.12); border-color: rgba(229, 57, 53, 0.35); }
+#toast {
+  background: rgba(10, 46, 26, 0.65);
+  border-color: var(--glass-border);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+footer { background: rgba(10, 46, 26, 0.60); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+
+/* ---------- Modales ---------- */
+.modal { background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.box {
+  background: var(--glass-bg), rgba(17, 24, 39, 0.72);
+  border-color: var(--glass-border);
+  box-shadow: var(--glass-hi), 0 30px 80px rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+}
+.box-h { background: rgba(10, 46, 26, 0.60); border-bottom: 1px solid var(--glass-border); }
+.welcome .ic { background: rgba(76, 175, 80, 0.15); border: 1px solid rgba(76, 175, 80, 0.30); }
+.field input { background: rgba(255, 255, 255, 0.06); border-color: var(--glass-border); }
+.field input:focus { background: rgba(255, 255, 255, 0.10); border-color: var(--green-accent); }
+.receipt { background: rgba(255, 255, 255, 0.05); border-color: var(--glass-border); border-top-color: var(--green-accent); }
+.pay { background: rgba(76, 175, 80, 0.10); border-color: rgba(76, 175, 80, 0.40); }
+.pay-h b { color: #a5d6a7; }               /* antes: verde oscuro sobre fondo oscuro (casi invisible) */
+.pay-d { background: rgba(0, 0, 0, 0.25); border-color: var(--glass-border); }
+
+/* Sin soporte de backdrop-filter: fondos más sólidos para que se lea bien */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  header.main, .dropdown-menu, .box, #floatBar .in, .modal { background: rgba(17, 24, 39, 0.96); }
+}
+
+/* Los estilos de móvil anteriores deben seguir mandando sobre el botón "Vaciar pedido" */
+@media (max-width: 520px) {
+  .clear-cart-btn { font-size: 11px; padding: 5px 10px; }
 }
