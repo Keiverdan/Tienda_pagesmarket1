@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0f8a4b">
   <title>Chupaalperro 668 - Supermercado Online</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -60,7 +61,8 @@
   <main class="wrap">
     <section class="hero">
       <div class="hero-main">
-        <span class="tag">Ofertas de la semana</span>
+        <div class="hero-deco" aria-hidden="true"><i class="fa-solid fa-apple-whole"></i><i class="fa-solid fa-carrot"></i><i class="fa-solid fa-bread-slice"></i><i class="fa-solid fa-lemon"></i></div>
+        <span class="tag"><i class="fa-solid fa-fire"></i>Ofertas de la semana</span>
         <h2>Tu mercado completo, directo a tu hogar</h2>
         <p>Productos frescos y de marcas confiables al mejor precio. Arma tu pedido y págalo por Pago Móvil.</p>
         <button class="btn-hero" onclick="document.getElementById('catalogo').scrollIntoView()">Ver catálogo <i class="fa-solid fa-arrow-right" style="margin-left:6px"></i></button>
@@ -71,11 +73,24 @@
       </div>
     </section>
 
+    <div class="ticker" aria-hidden="true">
+      <div class="ticker-track">
+        <span><i class="fa-solid fa-tags"></i>Precios de supermercado</span>
+        <span><i class="fa-solid fa-basket-shopping"></i>Arma tu pedido en minutos</span>
+        <span><i class="fa-solid fa-mobile-screen-button"></i>Paga por Pago Móvil</span>
+        <span><i class="fa-solid fa-store"></i>Retira en tienda al instante</span>
+        <span><i class="fa-solid fa-tags"></i>Precios de supermercado</span>
+        <span><i class="fa-solid fa-basket-shopping"></i>Arma tu pedido en minutos</span>
+        <span><i class="fa-solid fa-mobile-screen-button"></i>Paga por Pago Móvil</span>
+        <span><i class="fa-solid fa-store"></i>Retira en tienda al instante</span>
+      </div>
+    </div>
+
     <section class="benefits">
-      <div class="ben"><i class="fa-solid fa-tags"></i><div><b>Mejores precios</b><span>Precios de supermercado</span></div></div>
-      <div class="ben"><i class="fa-solid fa-box-open"></i><div><b>Productos de calidad</b><span>Marcas reconocidas</span></div></div>
-      <div class="ben"><i class="fa-brands fa-whatsapp"></i><div><b>Pedido por WhatsApp</b><span>Atención directa</span></div></div>
-      <div class="ben"><i class="fa-solid fa-shield-halved"></i><div><b>Compra segura</b><span>Factura al instante</span></div></div>
+      <div class="ben reveal"><i class="fa-solid fa-tags"></i><div><b>Mejores precios</b><span>Precios de supermercado</span></div></div>
+      <div class="ben reveal" style="--d:.08s"><i class="fa-solid fa-box-open"></i><div><b>Productos de calidad</b><span>Marcas reconocidas</span></div></div>
+      <div class="ben reveal" style="--d:.16s"><i class="fa-brands fa-whatsapp"></i><div><b>Pedido por WhatsApp</b><span>Atención directa</span></div></div>
+      <div class="ben reveal" style="--d:.24s"><i class="fa-solid fa-shield-halved"></i><div><b>Compra segura</b><span>Factura al instante</span></div></div>
     </section>
 
     <section id="catalogo">
