@@ -29,11 +29,10 @@ const fmt = n => n.toLocaleString('es-VE', { minimumFractionDigits:2, maximumFra
 function priceBs(p) { return p.precioUSD * CONFIG.tasaBCV; }
 
 /* ============================================================
-   CARGA DE DATOS (Fetch moderno - ideal para GitHub Pages)
+   CARGA DE DATOS
    ============================================================ */
 async function cargarDatos() {
   try {
-    // Ruta relativa simple. GitHub Pages sirve el JSON desde la misma carpeta.
     const respuesta = await fetch('productos.json?v=' + Date.now());
     if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
     const data = await respuesta.json();
@@ -42,7 +41,7 @@ async function cargarDatos() {
   } catch (e) {
     console.error('❌ Error cargando productos.json:', e);
     alert('No se pudo cargar productos.json. Verifica que el archivo exista y tenga formato JSON válido.');
-    throw e; // Detener la ejecución si no hay datos
+    throw e;
   }
 }
 
@@ -140,10 +139,10 @@ function updateCart(bump = false) {
   if (floatBar) {
     if (t.items > 0) {
       floatBar.style.display = 'block';
-      body.classList.add('has-floatbar');   // NUEVO: Añade padding al main
+      body.classList.add('has-floatbar');
     } else {
       floatBar.style.display = 'none';
-      body.classList.remove('has-floatbar'); // NUEVO: Quita el padding
+      body.classList.remove('has-floatbar');
     }
   }
 }
@@ -221,42 +220,33 @@ function render(animate = true, justId = null) {
 }
 
 /* ============================================================
-   CAMBIO DE CANTIDAD
+   CAMBIO DE CANTIDAD (Optimizado: solo actualiza la tarjeta)
    ============================================================ */
-// Reemplaza la función changeQty por esta versión optimizada
 function changeQty(id, delta) {
   state.quantities[id] = Math.max(0, (state.quantities[id] || 0) + delta);
   
-  // Actualizar SOLO la tarjeta afectada, no todo el grid
   const card = document.querySelector(`.card[data-id="${id}"]`);
   if (card) {
-    const p = PRODUCTS.find(x => x.id === id);
     const q = state.quantities[id] || 0;
-    const bs = priceBs(p);
-    const usd = p.precioUSD.toFixed(2);
-    
-    // Actualizar clases
     card.classList.toggle('sel', q > 0);
     
-    // Actualizar badge de cantidad
-    const badge = card.querySelector('.badge-qty');
-    if (q > 0 && !badge) {
-      const img = card.querySelector('.img');
-      const newBadge = document.createElement('span');
-      newBadge.className = 'badge-qty';
-      newBadge.textContent = `x${q}`;
-      img.appendChild(newBadge);
-    } else if (q > 0 && badge) {
+    // Badge de cantidad
+    let badge = card.querySelector('.badge-qty');
+    if (q > 0) {
+      if (!badge) {
+        badge = document.createElement('span');
+        badge.className = 'badge-qty';
+        card.querySelector('.img').appendChild(badge);
+      }
       badge.textContent = `x${q}`;
-    } else if (q === 0 && badge) {
+    } else if (badge) {
       badge.remove();
     }
     
-    // Actualizar la zona de acción (add vs step)
+    // Zona de acción (add vs step)
     const actionZone = card.querySelector('.add, .step');
     if (q > 0) {
       if (actionZone && actionZone.classList.contains('add')) {
-        // Reemplazar botón "Agregar" por el step
         const step = document.createElement('div');
         step.className = 'step';
         step.innerHTML = `
@@ -299,7 +289,7 @@ function vaciarPedido() {
 }
 
 /* ============================================================
-   EVENTOS
+   EVENTOS DEL GRID
    ============================================================ */
 if ($('grid')) {
   $('grid').addEventListener('click', e => {
@@ -324,39 +314,46 @@ if ($('grid')) {
     let n = parseInt(e.target.value, 10);
     if (isNaN(n) || n < 0) n = 0;
     state.quantities[id] = n;
-    render(false, id);
+    changeQty(id, 0);
     updateCart();
     save();
   });
 }
 
-// Manejo del clic en las categorías
-document.addEventListener('click', e => {
-  const catBtn = e.target.closest('[data-cat]');
-  if (catBtn) {
-    e.preventDefault();
-    const cat = catBtn.dataset.cat;
-    state.category = cat;
-    
-    document.querySelectorAll('.cat').forEach(x => x.classList.toggle('active', x.dataset.cat === cat));
-    
-    if (!catBtn.classList.contains('cat')) {
-        document.querySelectorAll('.cat').forEach(x => x.classList.remove('active'));
-    }
+/* ============================================================
+   FILTRO POR CATEGORÍA (CORREGIDO)
+   - Se asigna el evento SOLO a los elementos con [data-cat]
+   - El botón "Categorías" NO tiene data-cat, por lo que no dispara filtro
+   ============================================================ */
+function activarFiltrosCategoria() {
+  document.querySelectorAll('[data-cat]').forEach(el => {
+    el.addEventListener('click', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      const cat = el.dataset.cat;
+      state.category = cat;
+      
+      // Actualizar clase activa en los botones de la barra
+      document.querySelectorAll('.cat').forEach(x => {
+        x.classList.toggle('active', x.dataset.cat === cat);
+      });
+      
+      // Cerrar dropdown en móvil
+      const dropdown = $('dropdownContent');
+      const overlay = $('dropdownOverlay');
+      if (dropdown) dropdown.classList.remove('show');
+      if (overlay) overlay.classList.remove('show');
+      
+      render();
+    });
+  });
+}
 
-    const dropdown = $('dropdownContent');
-    const overlay = $('dropdownOverlay');
-    if (dropdown) dropdown.classList.remove('show');
-    if (overlay) overlay.classList.remove('show');
-
-    render();
-  }
-});
-
-// Lógica para el menú desplegable en móvil (CON VERIFICACIÓN DE NULL)
-const catDropdownBtn = $('catDropdownBtn');
-if (catDropdownBtn) {
-  catDropdownBtn.addEventListener('click', (e) => {
+/* ============================================================
+   MENÚ DESPLEGABLE EN MÓVIL
+   ============================================================ */
+if ($('catDropdownBtn')) {
+  $('catDropdownBtn').addEventListener('click', (e) => {
     e.stopPropagation();
     const dropdown = $('dropdownContent');
     const overlay = $('dropdownOverlay');
@@ -373,15 +370,17 @@ if (catDropdownBtn) {
   });
 }
 
-const dropdownOverlay = $('dropdownOverlay');
-if (dropdownOverlay) {
-  dropdownOverlay.addEventListener('click', () => {
+if ($('dropdownOverlay')) {
+  $('dropdownOverlay').addEventListener('click', () => {
     const dropdown = $('dropdownContent');
     if (dropdown) dropdown.classList.remove('show');
-    dropdownOverlay.classList.remove('show');
+    $('dropdownOverlay').classList.remove('show');
   });
 }
 
+/* ============================================================
+   BÚSQUEDA
+   ============================================================ */
 if ($('searchInput')) {
   $('searchInput').addEventListener('input', e => {
     state.query = e.target.value.trim().toLowerCase();
@@ -557,7 +556,6 @@ async function init() {
   try {
     await cargarDatos();
   } catch (e) {
-    // El error ya se mostró en cargarDatos
     return;
   }
 
@@ -572,6 +570,9 @@ async function init() {
   renderCategorias();
   render();
   updateCart();
+  
+  // Activar filtros de categoría DESPUÉS de renderizar las categorías
+  activarFiltrosCategoria();
 
   const revealEls = document.querySelectorAll('.reveal');
   if ('IntersectionObserver' in window) {
