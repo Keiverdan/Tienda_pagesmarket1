@@ -58,9 +58,9 @@ h1, h2, h3, .display { font-family: 'Poppins', 'Inter', sans-serif; }
 /* ============ KEYFRAMES ============ */
 @keyframes fadeUp { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
 @keyframes pop { 0% { transform: scale(1); } 40% { transform: scale(1.35); } 100% { transform: scale(1); } }
-@keyframes floaty { 0%, 100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-12px) rotate(4deg); } }
 @keyframes pulseRing { 0% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.45); } 100% { box-shadow: 0 0 0 14px rgba(229, 57, 53, 0); } }
 @keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 /* ============ TOPBAR ============ */
 .topbar {
@@ -272,6 +272,7 @@ header.main {
 .dropdown-menu a:hover { background: var(--green-light); color: var(--green-accent); }
 .dropdown:hover .dropdown-menu { display: block; }
 
+/* Móvil: Dropdown como bottom sheet, PERO por encima de la barra flotante */
 @media (max-width: 860px) {
   .dropdown-menu {
     position: fixed;
@@ -280,18 +281,20 @@ header.main {
     left: 0;
     right: 0;
     border-radius: 20px 20px 0 0;
-    max-height: 50vh;
+    max-height: 60vh;
     overflow-y: auto;
     display: none;
     margin-top: 0;
+    z-index: 200; /* POR ENCIMA DE LA BARRA FLOTANTE */
+    padding-bottom: 20px;
   }
   .dropdown-menu.show { display: block; animation: fadeUp 0.3s var(--ease); }
   .dropdown-overlay {
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.5);
-    z-index: 99;
+    background: rgba(0,0,0,0.7);
+    z-index: 199; /* Justo debajo del dropdown */
   }
   .dropdown-overlay.show { display: block; }
 }
@@ -475,7 +478,6 @@ header.main {
   gap: 20px;
 }
 
-/* TARJETA: altura consistente, sin deformación */
 .card {
   background: var(--card);
   border: 1px solid var(--line);
@@ -485,11 +487,10 @@ header.main {
   flex-direction: column;
   transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease), border-color 0.2s;
   position: relative;
-  /* Altura mínima para que todas las tarjetas se vean iguales */
   min-height: 380px;
+  overflow: hidden; /* Importante para que la imagen no se desborde */
 }
 
-/* Animación SOLO en carga inicial */
 .grid:not(.static) .card {
   animation: fadeUp 0.5s var(--ease) both;
   animation-delay: calc(var(--i, 0) * 45ms);
@@ -498,7 +499,7 @@ header.main {
 
 .card.sel { border-color: var(--green-primary); box-shadow: 0 0 0 3px rgba(26, 92, 42, 0.14); }
 
-/* IMAGEN: altura fija para evitar saltos */
+/* IMAGEN: Forzar tamaño y evitar estiramientos */
 .img {
   width: 100%;
   height: 180px;
@@ -507,8 +508,16 @@ header.main {
   overflow: hidden;
   position: relative;
   margin-bottom: 12px;
+  display: block; /* Asegura que sea bloque */
 }
-.img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s var(--ease); }
+.img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;   /* Recorta la imagen para llenar el contenedor */
+  object-position: center;
+  display: block;
+  transition: transform 0.6s var(--ease);
+}
 
 .badge-qty {
   position: absolute;
@@ -577,11 +586,12 @@ header.main {
   border-radius: 6px;
 }
 
-/* BOTÓN "AGREGAR" Y "STEP": MISMA ALTURA para no deformar */
+/* BOTONES: Altura fija idéntica */
 .add, .step {
   height: 44px;
   box-sizing: border-box;
   width: 100%;
+  flex-shrink: 0;
 }
 
 .add {
@@ -660,18 +670,19 @@ footer i { color: var(--yellow); width: 20px; }
 /* ============ BARRA FLOTANTE ============ */
 #floatBar {
   position: fixed;
-  left: 0;
-  right: 0;
   bottom: 16px;
+  left: 50%;                /* Centrado */
+  transform: translateX(-50%); /* Centrado real */
   z-index: 45;
+  width: 100%;              /* Ocupa todo el ancho disponible */
+  max-width: 680px;         /* Pero no más de 680px */
   padding: 0 16px;
   display: none;
   pointer-events: none;
+  box-sizing: border-box;
 }
 #floatBar .in {
   pointer-events: auto;
-  max-width: 680px;
-  margin: auto;
   width: 100%;
   background: var(--card);
   border: 1px solid var(--line);
@@ -759,8 +770,6 @@ footer i { color: var(--yellow); width: 20px; }
   overflow-y: auto;
 }
 .modal.show { display: flex; animation: fadeIn 0.25s; }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
 .box {
   background: var(--card);
   width: 100%;
@@ -927,10 +936,9 @@ footer i { color: var(--yellow); width: 20px; }
 }
 
 /* ============================================================
-   RESPONSIVE — MÓVIL (OPTIMIZADO, SIN DEFORMACIONES)
+   RESPONSIVE — MÓVIL (SIN DEFORMACIONES)
    ============================================================ */
 @media (max-width: 520px) {
-  /* Ajuste de padding para la barra flotante */
   body.has-floatbar main.wrap { padding-bottom: 130px; }
   main.wrap { padding-bottom: 40px; }
 
@@ -943,17 +951,24 @@ footer i { color: var(--yellow); width: 20px; }
     gap: 10px;
   }
 
-  /* TARJETA: altura fija, sin saltos */
+  /* TARJETA: altura fija y sin deformación */
   .card {
     padding: 10px;
     border-radius: 14px;
-    min-height: 340px; /* Altura consistente */
+    min-height: 340px;
+    max-height: 340px; /* Forzar altura máxima también */
   }
 
-  /* IMAGEN: altura fija en móvil */
+  /* IMAGEN: altura fija y object-fit forzado */
   .img {
-    height: 130px;
+    height: 120px;
     margin-bottom: 8px;
+  }
+  .img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
   }
 
   .card h3 {
@@ -1024,7 +1039,7 @@ footer i { color: var(--yellow); width: 20px; }
 
   /* Toast y barra flotante */
   #toast { bottom: 95px; font-size: 13px; padding: 12px 18px; }
-  #floatBar { bottom: 10px; padding: 0 10px; }
+  #floatBar { bottom: 10px; padding: 0 10px; max-width: 100%; }
   .fl-l b { font-size: 15px; }
   .fl-l em { font-size: 11px; }
   .fl-ico { width: 42px; height: 42px; font-size: 18px; }
