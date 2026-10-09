@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#0a2e1a">
-  <title>Chupaalperro 668 - Supermercado Online</title>
+  <title>Supermercados 668 C.A. - Tienda Online</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,7 +19,7 @@
       <span><i class="fa-solid fa-truck-fast"></i>Tu Local de confianza a tu alcance</span>
       <div class="right">
         <span class="hide-m2"><i class="fa-regular fa-clock"></i>Lun–Sáb 6:00am – 8:00pm</span>
-        <span><i class="fa-solid fa-phone"></i><span id="topPhone">0412-688-7277</span></span>
+        <span><i class="fa-solid fa-phone"></i><span id="topPhone">0412-6887277</span></span>
         <span><span class="save-dot"></span><span id="saveTxt">Guardado</span></span>
       </div>
     </div>
@@ -30,7 +30,7 @@
       <div class="head-row">
         <div class="brand">
           <div class="logo"><i class="fa-solid fa-cart-shopping"></i></div>
-          <div><b>Chupaalperro <span>668</span></b><small>Supermercado Online</small></div>
+          <div><b>Supermercados <span>668</span></b><small>Tienda Online</small></div>
         </div>
 
         <div class="search">
@@ -56,20 +56,13 @@
         
         <div class="dropdown" id="catDropdown">
           <button class="cat" id="catDropdownBtn"><i class="fa-solid fa-bars"></i>Categorías <i class="fa-solid fa-caret-down" style="font-size:10px; margin-left:4px;"></i></button>
-          <!-- El menú desplegable se movió FUERA del header (ver abajo) -->
+          <div class="dropdown-menu" id="dropdownContent">
+            <!-- Se llenará dinámicamente con JS -->
+          </div>
         </div>
       </div>
     </div>
   </header>
-
-  <!-- ============================================================
-       MENÚ DESPLEGABLE DE CATEGORÍAS (hijo directo de <body>)
-       Movido aquí para que ningún contenedor con sticky, backdrop-filter
-       u overflow lo recorte ni limite su z-index.
-       ============================================================ -->
-  <div class="dropdown-menu" id="dropdownContent">
-    <!-- Se llenará dinámicamente con JS -->
-  </div>
 
   <!-- Overlay para el menú desplegable en móvil (IMPRESCINDIBLE) -->
   <div class="dropdown-overlay" id="dropdownOverlay"></div>
@@ -131,13 +124,13 @@
     <div class="wrap">
       <div class="foot-grid">
         <div>
-          <div class="foot-brand"><span class="logo"><i class="fa-solid fa-cart-shopping"></i></span><span id="footBrand">Inversiones Chupaalperro 668 C.A</span></div>
+          <div class="foot-brand"><span class="logo"><i class="fa-solid fa-cart-shopping"></i></span><span id="footBrand">Supermercados 668 C.A.</span></div>
           <p>Tu supermercado digital. Compra desde casa y recibe tu pedido sin complicaciones.</p>
         </div>
         <div>
           <h4>Contacto</h4>
           <ul>
-            <li><i class="fa-solid fa-phone"></i><span id="footPhone">0412-688-7277</span></li>
+            <li><i class="fa-solid fa-phone"></i><span id="footPhone">0412-6887277</span></li>
             <li><i class="fa-brands fa-whatsapp"></i>WhatsApp de pedidos</li>
             <li><i class="fa-regular fa-clock"></i>Lun–Sáb 6:00am – 8:00pm</li>
           </ul>
@@ -151,7 +144,7 @@
           </ul>
         </div>
       </div>
-      <div class="copy">© <span id="yr">2025</span> <span id="footBrand2">Inversiones Chupaalperro 668 C.A</span> · Todos los derechos reservados.</div>
+      <div class="copy">© <span id="yr">2026</span> <span id="footBrand2">Supermercados 668 C.A.</span> · Todos los derechos reservados.</div>
     </div>
   </footer>
 
@@ -185,7 +178,7 @@
       <div class="box-h"><h3><i class="fa-solid fa-receipt"></i>Resumen de factura</h3><button class="x" id="invClose"><i class="fa-solid fa-xmark"></i></button></div>
       <div class="box-b">
         <div class="receipt">
-          <div class="rc-h"><h4 id="invBrand">Inversiones Chupaalperro 668 C.A</h4><p id="invDate">--</p><p id="invCust" style="color:var(--ink);font-weight:700">Cliente: --</p></div>
+          <div class="rc-h"><h4 id="invBrand">Supermercados 668 C.A.</h4><p id="invDate">--</p><p id="invCust" style="color:var(--ink);font-weight:700">Cliente: --</p></div>
           <div class="rc-cols"><span>Descripción</span><span>Subtotal</span></div>
           <div id="invItems"></div>
           <div class="rc-tot"><span id="invCount">Total: 0 ítems</span><span class="a" id="invTotal">0,00 Bs.</span></div>
