@@ -583,8 +583,13 @@ if ($('invModal')) $('invModal').addEventListener('click', e => { if (e.target =
 
 if ($('refInput')) {
   $('refInput').addEventListener('input', e => {
-    e.target.value = e.target.value.replace(/[^0-9]/g, '');
+     // Solo digitos, maximo 11
+    e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0,11);
     state.refNumber = e.target.value;
+     // feedback visual: un error si hay de 1 - 3 digitos
+     const len = e.target.value.length;
+     e.target.classList.toggle('invalid', len > 0 && len < 4);
+     
     save();
   });
 }
@@ -617,11 +622,29 @@ if ($('copyBtn')) {
    ============================================================ */
 if ($('waBtn')) {
   $('waBtn').addEventListener('click', () => {
-    if (!state.refNumber) {
+    const ref = (state.refNumber || '').trim();
+
+    if (!ref) {
       toast('Ingresa el Nro. de Referencia');
       if ($('refInput')) $('refInput').focus();
       return;
     }
+    if (!/^\d+$/.test(ref)) {
+      toast('La referencia solo debe contener números');
+      if ($('refInput')) $('refInput').focus();
+      return;
+    }
+    if (ref.length < 4) {
+      toast('La referencia debe tener al menos 4 dígitos');
+      if ($('refInput')) $('refInput').focus();
+      return;
+    }
+    if (ref.length > 11) {
+      toast('La referencia no puede tener más de 11 dígitos');
+      if ($('refInput')) $('refInput').focus();
+      return;
+    }
+
     if (!requireItems()) return;
 
     let lines = '';
