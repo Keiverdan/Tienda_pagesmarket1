@@ -2,7 +2,7 @@
    CONFIGURACIÓN GLOBAL
    ============================================================ */
 let CONFIG = {
-  tienda: "Inversiones Chupaalperro 668 C.A",
+  tienda: "Supermercados 668 C.A.",
   whatsapp: "584126887277",
   whatsappVisible: "0412-688-7277",
   tasaBCV: 0,
@@ -27,6 +27,76 @@ const $ = id => document.getElementById(id);
 const fmt = n => n.toLocaleString('es-VE', { minimumFractionDigits:2, maximumFractionDigits:2 });
 
 function priceBs(p) { return p.precioUSD * CONFIG.tasaBCV; }
+
+/* ============================================================
+   PERFIL DE COMPORTAMIENTO (cache del navegador del usuario)
+   Se usa para el algoritmo de recomendaciones en el catálogo.
+   ============================================================ */
+const PROFILE_KEY = 'tienda_profile_v1';
+
+let profile = { views: {}, adds: {}, cats: {}, searches: [], lastCat: 'all' };
+
+function loadProfile() {
+  try {
+    const raw = localStorage.getItem(PROFILE_KEY);
+    if (raw) profile = Object.assign(profile, JSON.parse(raw));
+  } catch(e) {}
+}
+
+function saveProfile() {
+  try { localStorage.setItem(PROFILE_KEY, JSON.stringify(profile)); } catch(e) {}
+}
+
+/** Registrar que el usuario vio un producto (clic en la tarjeta) */
+function trackView(id) {
+  if (!id) return;
+  profile.views[id] = (profile.views[id] || 0) + 1;
+  saveProfile();
+}
+
+/** Registrar que el usuario agregó un producto al pedido */
+function trackAdd(id) {
+  if (!id) return;
+  profile.adds[id] = (profile.adds[id] || 0) + 1;
+  saveProfile();
+}
+
+/** Registrar categoría visitada */
+function trackCat(cat) {
+  if (!cat || cat === 'all') return;
+  profile.cats[cat] = (profile.cats[cat] || 0) + 1;
+  profile.lastCat = cat;
+  saveProfile();
+}
+
+/** Registrar búsqueda del usuario */
+function trackSearch(q) {
+  if (!q) return;
+  q = q.trim().toLowerCase();
+  if (!q) return;
+  profile.searches.push(q);
+  if (profile.searches.length > 20) profile.searches.shift();
+  saveProfile();
+}
+
+/**
+ * Puntúa un producto según el comportamiento del usuario.
+ * Señales: agregados al carrito (fuerte), vistas (moderada),
+ * categoría preferida, coincidencia con búsquedas pasadas.
+ */
+function scoreProduct(p) {
+  let s = 0;
+  s += (profile.adds[p.id] || 0) * 30;
+  s += (profile.views[p.id] || 0) * 8;
+  if (p.categoria === profile.lastCat) s += 15;
+  const q = (state.query || '').toLowerCase();
+  if (q && (p.titulo.toLowerCase().includes(q) || p.marca.toLowerCase().includes(q))) s += 25;
+  // Refuerzo suave por productos de la misma categoría que los más agregados
+  return s;
+}
+
+/** Umbral para mostrar el badge "Recomendado" */
+const RECO_THRESHOLD = 20;
 
 /* ============================================================
    CARGA DE DATOS
@@ -152,21 +222,15 @@ function updateCart(bump = false) {
    ============================================================ */
 function renderCategorias() {
   const dropdownContent = $('dropdownContent');
-  if (!dropdownContent) {
-    console.warn('⚠️ #dropdownContent no encontrado');
-    return;
-  }
+  if (!dropdownContent) return;
 
   // Si la categoría guardada ya no existe, volver a "Todos"
   if (state.category !== 'all' && !CAT_LABEL[state.category]) state.category = 'all';
 
-  // Renderizar TODAS las categorías (incluyendo "Todos" como opción)
-  let html = `<a href="#" role="menuitem" data-cat="all"><i class="fa-solid fa-border-all"></i><span>Todos</span></a>`;
-  html += CATEGORIAS.map(c =>
+  // Las categorías viven SOLO dentro del menú desplegable
+  dropdownContent.innerHTML = CATEGORIAS.map(c =>
     `<a href="#" role="menuitem" data-cat="${c.id}"><i class="fa-solid ${c.icono}"></i><span>${c.nombre}</span></a>`
   ).join('');
-  
-  dropdownContent.innerHTML = html;
 
   syncCategoriaUI();
 }
@@ -199,6 +263,12 @@ function render(animate = true, justId = null) {
     return c && q;
   });
 
+  // Algoritmo de recomendaciones: solo ordena cuando NO hay búsqueda activa
+  // (con búsqueda se respeta el orden de relevancia del usuario).
+  if (!state.query) {
+    list.sort((a, b) => scoreProduct(b) - scoreProduct(a));
+  }
+
   if ($('counter')) $('counter').textContent = 'Mostrando ' + list.length + ' producto' + (list.length === 1 ? '' : 's');
   if ($('empty')) $('empty').style.display = list.length ? 'none' : 'block';
 
@@ -207,11 +277,13 @@ function render(animate = true, justId = null) {
     const bs = priceBs(p);
     const usd = p.precioUSD.toFixed(2);
     const ph = 'https://placehold.co/600x600/1f2937/9ca3af?text=' + encodeURIComponent(p.titulo);
+    const reco = !state.query && scoreProduct(p) >= RECO_THRESHOLD;
 
     return `
-    <article class="card ${q > 0 ? 'sel' : ''} ${p.id === justId ? 'just' : ''}" data-id="${p.id}" style="--i:${Math.min(idx, 12)}">
+    <article class="card ${q > 0 ? 'sel' : ''} ${p.id === justId ? 'just' : ''} ${reco ? 'reco' : ''}" data-id="${p.id}" style="--i:${Math.min(idx, 12)}">
       <div class="img">
         <span class="badge-cat">${CAT_LABEL[p.categoria] || p.categoria}</span>
+        ${reco ? `<span class="badge-reco"><i class="fa-solid fa-sparkles"></i> Recomendado</span>` : ''}
         ${q > 0 ? `<span class="badge-qty">x${q}</span>` : ''}
         <img src="${p.imagen}" alt="${p.titulo}" loading="lazy" decoding="async" onload="this.parentNode.classList.add('ld')" onerror="this.onerror=null;this.src='${ph}'">
       </div>
@@ -235,6 +307,7 @@ function render(animate = true, justId = null) {
    ============================================================ */
 function changeQty(id, delta) {
   state.quantities[id] = Math.max(0, (state.quantities[id] || 0) + delta);
+  if (delta > 0) trackAdd(id);
   
   const card = document.querySelector(`.card[data-id="${id}"]`);
   if (card) {
@@ -303,7 +376,10 @@ function vaciarPedido() {
    EVENTOS DEL GRID
    ============================================================ */
 if ($('grid')) {
+  // Vista: cualquier clic sobre una tarjeta cuenta como interacción con ese producto
   $('grid').addEventListener('click', e => {
+    const card = e.target.closest('.card');
+    if (card && card.dataset.id) trackView(+card.dataset.id);
     const btn = e.target.closest('[data-act]');
     if (!btn || btn.tagName === 'INPUT') return;
     const id = +btn.closest('.card').dataset.id;
@@ -388,6 +464,7 @@ window.addEventListener('scroll', () => { if (menuAbierto()) posicionarMenu(); }
    ============================================================ */
 function setCategory(cat) {
   state.category = cat;
+  trackCat(cat);
   syncCategoriaUI();
   cerrarMenuCategorias();
   save();
@@ -413,6 +490,7 @@ function activarFiltrosCategoria() {
 if ($('searchInput')) {
   $('searchInput').addEventListener('input', e => {
     state.query = e.target.value.trim().toLowerCase();
+    if (state.query) trackSearch(state.query);
     if ($('clearBtn')) $('clearBtn').style.display = state.query ? 'block' : 'none';
     render();
   });
@@ -582,6 +660,7 @@ if ($('waBtn')) {
    ============================================================ */
 async function init() {
   load();
+  loadProfile();
   try {
     await cargarDatos();
   } catch (e) {
