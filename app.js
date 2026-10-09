@@ -122,6 +122,8 @@ function aplicarDatos(data) {
       CONFIG.tasaBCV = parseFloat(data.config.tasaBCV) || CONFIG.tasaBCV;
     }
   }
+  // Asegurar siempre el nombre correcto de la tienda
+  CONFIG.tienda = "Supermercados 668 C.A.";
   if (data.categorias) {
     CATEGORIAS = data.categorias;
     CAT_LABEL = {};
@@ -227,9 +229,8 @@ function renderCategorias() {
   // Si la categoría guardada ya no existe, volver a "Todos"
   if (state.category !== 'all' && !CAT_LABEL[state.category]) state.category = 'all';
 
-  // Las categorías viven SOLO dentro del menú desplegable
   dropdownContent.innerHTML = CATEGORIAS.map(c =>
-    `<a href="#" role="menuitem" data-cat="${c.id}"><i class="fa-solid ${c.icono}"></i><span>${c.nombre}</span></a>`
+    `<button type="button" class="cat-item ${state.category === c.id ? 'active' : ''}" data-cat="${c.id}"><i class="fa-solid ${c.icono}"></i><span>${c.nombre}</span></button>`
   ).join('');
 
   syncCategoriaUI();
@@ -479,7 +480,7 @@ function activarFiltrosCategoria() {
   document.addEventListener('click', e => {
     const el = e.target.closest('[data-cat]');
     if (!el) return;
-    e.preventDefault();
+    if (el.tagName === 'A') e.preventDefault();
     setCategory(el.dataset.cat);
   });
 }
