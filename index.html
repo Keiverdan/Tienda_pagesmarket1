@@ -192,7 +192,7 @@
         </div>
         <div class="field">
           <label for="refInput"><i class="fa-solid fa-hashtag" style="color:var(--orange)"></i> Nro. de referencia *</label>
-          <input type="text" id="refInput" inputmode="numeric" placeholder="Ej: 849201">
+          <input type="text" id="refInput" inputmode="numeric" maxlength="11" minlength="4" pattern="\d{4,11}" placeholder="Ej: 849201" title="Ingresa entre 4 y 11 dígitos">
         </div>
         <button class="wa" id="waBtn"><i class="fa-brands fa-whatsapp"></i>Enviar pedido por WhatsApp</button>
       </div>
