@@ -886,6 +886,11 @@ footer i { color: var(--yellow); width: 20px; }
 .btn-main:hover { background: var(--green-dark); }
 .btn-main:active { transform: scale(0.97); }
 
+.field input.invalid {
+  border-color: var(--red);
+  box-shadow: 0 0 0 4px rgba(229, 57, 53, 0.12);
+}
+
 /* Factura */
 .receipt {
   border: 1px solid var(--line);
