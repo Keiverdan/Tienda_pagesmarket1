@@ -9,6 +9,7 @@
   --yellow: #ffc107;
   --red: #e53935;
   --red-dark: #c62828;
+  --black-label: #1c1707;
   --ink: #e5e7eb;
   --muted: #9ca3af;
   --line: #2d3748;
@@ -152,7 +153,7 @@ header.main {
   transition: all 0.2s;
 }
 .search input::placeholder { color: rgba(255, 255, 255, 0.6); }
-.search input:focus { background: #fff; color: var(--ink); border-color: var(--yellow); }
+.search input:focus { background: #fff; color: var(--ink); border-color: var(--black-label); }
 .search .ico { position: absolute; left: 17px; top: 50%; transform: translateY(-50%); color: #a5d6a7; }
 .search input:focus + .ico { color: var(--green-primary); }
 .search .clr { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: var(--muted); display: none; }
