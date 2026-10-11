@@ -3,28 +3,18 @@
    ============================================================ */
 
 /**
- * Marquesina infinita (ticker) — versión robusta.
+ * Marquesina infinita (ticker) — versión a prueba de balas.
  *
- * Claves del arreglo:
- *  1) Se mide el ancho real de UNA copia con getBoundingClientRect()
- *     sobre los hijos (no con scrollWidth, que se corrompe con transform).
- *  2) Se mide DESPUÉS de document.fonts.ready + un delay, para que
- *     Font Awesome ya tenga ancho real en los <i>.
- *  3) Se usa translate3d() para forzar composición en GPU.
- *  4) Se re-mide en resize y cuando las imágenes cargan.
+ * Estrategia: en vez de medir con getBoundingClientRect (que se corrompe
+ * con transform y con gap), medimos el ancho de UNA COPIA sumando
+ * offsetWidth de cada item + el gap real entre ellos.
  */
 function initTicker() {
   const track = document.querySelector('.ticker-track');
-  if (!track) {
-    console.warn('[Ticker] No se encontró .ticker-track');
-    return null;
-  }
+  if (!track) { console.warn('[Ticker] No .ticker-track'); return null; }
 
   const items = Array.from(track.children);
-  if (items.length < 2) {
-    console.warn('[Ticker] Faltan items duplicados en el track');
-    return null;
-  }
+  if (items.length < 4) { console.warn('[Ticker] Pocos items'); return null; }
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (reducedMotion) {
@@ -32,25 +22,22 @@ function initTicker() {
     return { stop() {}, pause() {}, play() {}, setSpeed() {} };
   }
 
-  // El track tiene 2 copias: medimos la distancia del primer item
-  // al primer item de la segunda copia.
   const half = Math.floor(items.length / 2);
-  let copyWidth = 1;
+  let copyWidth = 1000; // fallback
 
   function measure() {
-    // Reset del transform para medir en posición natural
-    const prev = track.style.transform;
-    track.style.transform = 'translate3d(0,0,0)';
-    // forzar reflow
+    // Asegurar que no hay transform antes de medir
+    const prevTransform = track.style.transform;
+    track.style.transform = 'none';
+    // Forzar reflow
     void track.offsetWidth;
 
-    const first = items[0].getBoundingClientRect();
-    const mid   = items[half].getBoundingClientRect();
-    copyWidth = Math.max(1, mid.left - first.left);
+    // Ancho real de una copia = scrollWidth / 2 (scrollWidth ignora transforms)
+    const total = track.scrollWidth;
+    copyWidth = Math.max(100, total / 2);
 
-    // restauramos
-    track.style.transform = prev;
-    console.log('[Ticker] copyWidth =', copyWidth);
+    track.style.transform = prevTransform;
+    console.log('[Ticker] copyWidth =', copyWidth, '(total scrollWidth =', total + ')');
   }
 
   let offset = 0;
@@ -70,7 +57,6 @@ function initTicker() {
       if (-offset >= copyWidth) offset += copyWidth;
       track.style.transform = `translate3d(${offset}px, 0, 0)`;
     }
-
     rafId = requestAnimationFrame(step);
   }
 
@@ -89,11 +75,6 @@ function initTicker() {
   }
 
   window.addEventListener('resize', () => { updateSpeed(); measure(); });
-  window.addEventListener('load', measure);
-  // re-medir cuando carguen las imágenes internas (placeholders, etc.)
-  track.querySelectorAll('img').forEach(img => {
-    img.addEventListener('load', measure, { once: true });
-  });
 
   updateSpeed();
 
@@ -106,31 +87,26 @@ function initTicker() {
     console.log('[Ticker] Animación iniciada');
   }
 
-  // Medir cuando el layout esté listo: esperar fuentes + 2 frames
-  const whenReady = () => {
-    requestAnimationFrame(() => requestAnimationFrame(start));
-  };
+  // Arrancar cuando fuentes + layout estén listos
+  const whenReady = () => requestAnimationFrame(() => requestAnimationFrame(start));
 
   if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(() => setTimeout(whenReady, 50));
+    document.fonts.ready.then(() => setTimeout(whenReady, 100));
   } else {
-    window.addEventListener('load', () => setTimeout(whenReady, 50));
+    window.addEventListener('load', () => setTimeout(whenReady, 100));
   }
 
   return {
     stop: () => cancelAnimationFrame(rafId),
-    pause,
-    play,
+    pause, play,
     setSpeed: s => { speed = s; },
     remeasure: measure,
   };
 }
 
-/* ---------- Inicialización ---------- */
 let TickerCtrl = null;
 function initAnimations() {
   if (TickerCtrl) return;
   TickerCtrl = initTicker();
 }
-
 window.initAnimations = initAnimations;
