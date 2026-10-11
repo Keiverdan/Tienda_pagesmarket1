@@ -24,10 +24,19 @@ function initTicker() {
   let lastTime = 0;
   let rafId = null;
   let paused = false;
-  let speed = 42;          // px por segundo
+  let speed = 42; 
+  let halfWidth = 1;// px por segundo
 
-  // Ancho de una sola copia de elementos (la pista contiene dos copias)
-  const halfWidth = () => Math.max(1, track.scrollWidth / 2);
+ // Medir el ancho de UNA copia usando los hijos reales (mitad de items)
+  function measure() {
+    const items = track.children;
+    if (items.length < 2) { halfWidth = Math.max(1, track.scrollWidth); return; }
+    const half = Math.floor(items.length / 2);
+    const firstRect = items[0].getBoundingClientRect();
+    const midRect = items[half].getBoundingClientRect();
+    // Distancia horizontal entre el primer item y el primero de la 2ª copia
+    halfWidth = Math.max(1, midRect.left - firstRect.left);
+  }
 
   function step(ts) {
     if (!lastTime) lastTime = ts;
@@ -39,7 +48,7 @@ function initTicker() {
       offset -= speed * dt;
       const half = halfWidth();
       if (Math.abs(offset) >= half) offset += half;
-      track.style.transform = `translateX(${offset}px)`;
+      track.style.transform = `translate3d(${offset}px, 0, 0)`;
     }
 
     rafId = requestAnimationFrame(step);
@@ -60,7 +69,7 @@ function initTicker() {
     else if (w <= 860) speed = 36;
     else speed = 42;
   }
-  window.addEventListener('resize', updateSpeed);
+  window.addEventListener('resize', () => { updateSpeed(); measure(); });
   updateSpeed();
 
   // Respetar preferencia de movimiento reducido: marquesina estática
@@ -68,9 +77,20 @@ function initTicker() {
     track.style.transform = 'none';
     return { stop() {}, pause, play, setSpeed() {} };
   }
+   
+   // Medir cuando el layout y las fuentes estén listas
+  const start = () => {
+    measure();
+    rafId = requestAnimationFrame(step);
+  };
 
-  rafId = requestAnimationFrame(step);
-
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(start);
+  } else {
+    // Fallback: esperar un frame + un pequeño delay
+    requestAnimationFrame(() => setTimeout(start, 100));
+  }
+   
   return {
     stop: () => cancelAnimationFrame(rafId),
     pause,
