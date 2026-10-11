@@ -1,42 +1,63 @@
 /* ============================================================
    ANIMACIONES — Tienda Supermercados 668 C.A.
-   Todas las animaciones de la app se controlan desde este archivo.
-   styles.css solo se encarga del diseño (colores, layout, tipografía).
    ============================================================ */
 
 /**
- * Marquesina infinita (ticker).
+ * Marquesina infinita (ticker) — versión robusta.
  *
- * Estructura (tomada de ticker-animation.html):
- *   .ticker > .ticker-track > .ticker-item (icono + texto)
- * Los elementos se duplican para que el bucle sea seamless: cuando el
- * desplazamiento llega a la mitad del ancho total, se reinicia a cero
- * sin saltos visibles. El movimiento se drive con requestAnimationFrame
- * para un control total desde JS (las animaciones viven aquí, no en CSS).
+ * Claves del arreglo:
+ *  1) Se mide el ancho real de UNA copia con getBoundingClientRect()
+ *     sobre los hijos (no con scrollWidth, que se corrompe con transform).
+ *  2) Se mide DESPUÉS de document.fonts.ready + un delay, para que
+ *     Font Awesome ya tenga ancho real en los <i>.
+ *  3) Se usa translate3d() para forzar composición en GPU.
+ *  4) Se re-mide en resize y cuando las imágenes cargan.
  */
 function initTicker() {
   const track = document.querySelector('.ticker-track');
-  if (!track) return null;
+  if (!track) {
+    console.warn('[Ticker] No se encontró .ticker-track');
+    return null;
+  }
+
+  const items = Array.from(track.children);
+  if (items.length < 2) {
+    console.warn('[Ticker] Faltan items duplicados en el track');
+    return null;
+  }
 
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reducedMotion) {
+    track.style.transform = 'none';
+    return { stop() {}, pause() {}, play() {}, setSpeed() {} };
+  }
+
+  // El track tiene 2 copias: medimos la distancia del primer item
+  // al primer item de la segunda copia.
+  const half = Math.floor(items.length / 2);
+  let copyWidth = 1;
+
+  function measure() {
+    // Reset del transform para medir en posición natural
+    const prev = track.style.transform;
+    track.style.transform = 'translate3d(0,0,0)';
+    // forzar reflow
+    void track.offsetWidth;
+
+    const first = items[0].getBoundingClientRect();
+    const mid   = items[half].getBoundingClientRect();
+    copyWidth = Math.max(1, mid.left - first.left);
+
+    // restauramos
+    track.style.transform = prev;
+    console.log('[Ticker] copyWidth =', copyWidth);
+  }
 
   let offset = 0;
   let lastTime = 0;
   let rafId = null;
   let paused = false;
   let speed = 42;
-  let halfWidth = 1;
-
-  // Medir el ancho de UNA copia usando los hijos reales (mitad de items)
-  function measure() {
-    const items = track.children;
-    if (items.length < 2) { halfWidth = Math.max(1, track.scrollWidth); return; }
-    const half = Math.floor(items.length / 2);
-    const firstRect = items[0].getBoundingClientRect();
-    const midRect = items[half].getBoundingClientRect();
-    // Distancia horizontal entre el primer item y el primero de la 2ª copia
-    halfWidth = Math.max(1, midRect.left - firstRect.left);
-  }
 
   function step(ts) {
     if (!lastTime) lastTime = ts;
@@ -46,7 +67,7 @@ function initTicker() {
 
     if (!paused) {
       offset -= speed * dt;
-      if (Math.abs(offset) >= halfWidth) offset += halfWidth;
+      if (-offset >= copyWidth) offset += copyWidth;
       track.style.transform = `translate3d(${offset}px, 0, 0)`;
     }
 
@@ -66,25 +87,34 @@ function initTicker() {
     else if (w <= 860) speed = 36;
     else speed = 42;
   }
+
   window.addEventListener('resize', () => { updateSpeed(); measure(); });
+  window.addEventListener('load', measure);
+  // re-medir cuando carguen las imágenes internas (placeholders, etc.)
+  track.querySelectorAll('img').forEach(img => {
+    img.addEventListener('load', measure, { once: true });
+  });
+
   updateSpeed();
 
-  if (reducedMotion) {
-    track.style.transform = 'none';
-    return { stop() {}, pause, play, setSpeed() {} };
+  function start() {
+    measure();
+    if (rafId) cancelAnimationFrame(rafId);
+    lastTime = 0;
+    offset = 0;
+    rafId = requestAnimationFrame(step);
+    console.log('[Ticker] Animación iniciada');
   }
 
-  // Medir cuando el layout y las fuentes estén listas
-  const start = () => {
-    measure();
-    rafId = requestAnimationFrame(step);
+  // Medir cuando el layout esté listo: esperar fuentes + 2 frames
+  const whenReady = () => {
+    requestAnimationFrame(() => requestAnimationFrame(start));
   };
 
   if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(start);
+    document.fonts.ready.then(() => setTimeout(whenReady, 50));
   } else {
-    // Fallback: esperar un frame + un pequeño delay
-    requestAnimationFrame(() => setTimeout(start, 100));
+    window.addEventListener('load', () => setTimeout(whenReady, 50));
   }
 
   return {
@@ -92,5 +122,15 @@ function initTicker() {
     pause,
     play,
     setSpeed: s => { speed = s; },
+    remeasure: measure,
   };
 }
+
+/* ---------- Inicialización ---------- */
+let TickerCtrl = null;
+function initAnimations() {
+  if (TickerCtrl) return;
+  TickerCtrl = initTicker();
+}
+
+window.initAnimations = initAnimations;
