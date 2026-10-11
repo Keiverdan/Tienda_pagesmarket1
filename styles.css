@@ -455,8 +455,8 @@ header.main {
   width: max-content;
   gap: 60px;
   padding: 12px 60px 12px 0;
-  -webkit-animation: marquee 25s linear infinite;
-  animation: marquee 25s linear infinite;
+  -webkit-animation: marquee 25s linear infinite !important;
+  animation: marquee 25s linear infinite !important;
   will-change: transform;
 }
 
