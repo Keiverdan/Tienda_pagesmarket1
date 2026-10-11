@@ -428,7 +428,16 @@ header.main {
 .mini b { font-family: 'Poppins'; font-size: 18px; }
 .mini span { font-size: 12px; opacity: 0.9; margin-top: 4px; }
 
-/* ============ TICKER ============ */
+/* ============ TICKER (marquesina infinita 100% CSS) ============ */
+@keyframes marquee {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@-webkit-keyframes marquee {
+  0%   { -webkit-transform: translateX(0); }
+  100% { -webkit-transform: translateX(-50%); }
+}
+
 .ticker {
   background: var(--yellow);
   color: #3e2723;
@@ -440,13 +449,22 @@ header.main {
   margin-bottom: 24px;
   position: relative;
 }
+
 .ticker-track {
-  display: inline-flex;
-  gap: 50px;
-  padding: 12px 0;
+  display: flex;
+  width: max-content;
+  gap: 60px;
+  padding: 12px 60px 12px 0;
+  -webkit-animation: marquee 25s linear infinite;
+  animation: marquee 25s linear infinite;
   will-change: transform;
-  transform: translate3d(0, 0, 0);
 }
+
+.ticker-track:hover {
+  -webkit-animation-play-state: paused;
+  animation-play-state: paused;
+}
+
 .ticker-item {
   display: inline-flex;
   align-items: center;
@@ -454,7 +472,17 @@ header.main {
   flex-shrink: 0;
   padding: 0 10px;
 }
+
 .ticker-item i { color: #e53935; }
+
+@media (max-width: 600px) {
+  .ticker-track {
+    gap: 40px;
+    padding: 12px 40px 12px 0;
+    animation-duration: 18s;
+  }
+  .ticker { font-size: 12px; }
+}
 
 /* ============ BENEFICIOS ============ */
 .benefits {
