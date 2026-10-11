@@ -685,10 +685,14 @@ if ($('waBtn')) {
 async function init() {
   load();
   loadProfile();
+
+  // Animaciones primero: no dependen de productos.json
+  if (window.initAnimations) window.initAnimations();
+
   try {
     await cargarDatos();
   } catch (e) {
-    return;
+    console.error('Fallo cargando datos, pero la app sigue:', e);
   }
 
   if ($('topPhone')) $('topPhone').textContent = CONFIG.whatsappVisible;
@@ -699,14 +703,9 @@ async function init() {
   if ($('rateInput')) $('rateInput').value = CONFIG.tasaBCV.toFixed(2);
   if ($('yr')) $('yr').textContent = new Date().getFullYear();
 
-  // Inicializar animaciones (ticker infinito, etc.)
-  if (window.initAnimations) window.initAnimations();
-
   renderCategorias();
   render();
   updateCart();
-  
-  // Activar filtros de categoría DESPUÉS de renderizar las categorías
   activarFiltrosCategoria();
 
   const revealEls = document.querySelectorAll('.reveal');
