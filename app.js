@@ -699,6 +699,9 @@ async function init() {
   if ($('rateInput')) $('rateInput').value = CONFIG.tasaBCV.toFixed(2);
   if ($('yr')) $('yr').textContent = new Date().getFullYear();
 
+  // Inicializar animaciones (ticker infinito, etc.)
+  if (window.initAnimations) window.initAnimations();
+
   renderCategorias();
   render();
   updateCart();
