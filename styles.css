@@ -438,13 +438,14 @@ header.main {
   font-size: 13px;
   border-radius: 12px;
   margin-bottom: 24px;
+  position: relative;
 }
 .ticker-track {
-  display: flex;
+  display: inline-flex;
   gap: 50px;
   padding: 12px 0;
-  width: max-content;
   will-change: transform;
+  transform: translate3d(0, 0, 0);
 }
 .ticker-item {
   display: inline-flex;
