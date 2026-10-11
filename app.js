@@ -686,9 +686,6 @@ async function init() {
   load();
   loadProfile();
 
-  // Animaciones primero: no dependen de productos.json
-  if (window.initAnimations) window.initAnimations();
-
   try {
     await cargarDatos();
   } catch (e) {
