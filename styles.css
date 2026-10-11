@@ -443,6 +443,7 @@ header.main {
   display: flex;
   gap: 50px;
   padding: 12px 0;
+  width: max-content;
   will-change: transform;
 }
 .ticker-item {
